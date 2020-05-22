@@ -1,7 +1,6 @@
 package com.anklav.diplom;
 
 import com.anklav.diplom.service.MailService;
-import com.google.api.services.gmail.Gmail;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -15,5 +14,4 @@ public class DiplomApplication {
 //		MailService.runService();
 		SpringApplication.run(DiplomApplication.class, args);
 	}
-
 }

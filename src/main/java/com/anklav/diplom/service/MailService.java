@@ -1,5 +1,8 @@
 package com.anklav.diplom.service;
 
+import com.anklav.diplom.dto.MailDTO;
+import com.anklav.diplom.mapper.MailMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -30,16 +33,19 @@ import java.util.List;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
+@Service
 public class MailService {
     private static final String APPLICATION_NAME = "Gmail API Java Quickstart";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
@@ -47,6 +53,55 @@ public class MailService {
 
     private static final List<String> SCOPES = Collections.singletonList(GmailScopes.GMAIL_READONLY);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
+
+    private static List<Message> resultListForDB = new ArrayList<>();
+
+    private static JsonMapper jsonMapper = new JsonMapper();
+
+    public List<MailDTO> getEmails() throws GeneralSecurityException, IOException {
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        Gmail service = new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                .setApplicationName(APPLICATION_NAME)
+                .build();
+        try {
+            ListMessagesResponse response = service.users().messages().list("me").execute();
+
+            List<Message> messages = new ArrayList<Message>();
+            while (response.getMessages() != null) {
+                messages.addAll(response.getMessages());
+                if (response.getNextPageToken() != null) {
+                    String pageToken = response.getNextPageToken();
+                    response = service.users().messages().list("me").setPageToken(pageToken).execute();
+                } else {
+                    break;
+                }
+            }
+
+//            for (Message message : messages) {
+////                System.out.println(message.getId());
+//                Message test = service.users().messages().get("me", message.getId()).setFormat("full").execute();
+////                System.out.println(StringUtils.newStringUtf8(Base64.decodeBase64(test.getPayload().getBody().getData())));
+////                System.out.println(test.getSnippet());
+//                resultListForDB.add(test);
+//            }
+
+            for (int i = 0; i < 300; i++) {
+                Message test = service.users().messages().get("me", messages.get(i).getId()).setFormat("full").execute();
+                resultListForDB.add(test);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        List<MailDTO> mailDTOList = MailMapper.getViewDTO(resultListForDB
+                .stream()
+                .filter(y -> y.getLabelIds().contains("Label_2665037630844836558") || y.getLabelIds().contains("Label_3743344143877711668"))
+                .collect(Collectors.toList()));
+
+//        jsonMapper.writeValueAsString(mailDTOList);
+
+        return mailDTOList;
+    }
 
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
         // Load client secrets.
@@ -66,37 +121,7 @@ public class MailService {
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
-    public static void getEmails() throws GeneralSecurityException, IOException {
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        Gmail service = new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
-                .setApplicationName(APPLICATION_NAME)
-                .build();
-        try {
-            ListMessagesResponse response = service.users().messages().list("me").execute();
-
-            List<Message> messages = new ArrayList<Message>();
-            while (response.getMessages() != null) {
-                messages.addAll(response.getMessages());
-                if (response.getNextPageToken() != null) {
-                    String pageToken = response.getNextPageToken();
-                    response = service.users().messages().list("me").setPageToken(pageToken).execute();
-                } else {
-                    break;
-                }
-            }
-
-            for (Message message : messages) {
-                System.out.println(message.getId());
-                Message test = service.users().messages().get("me", message.getId()).setFormat("full").execute();
-                System.out.println(StringUtils.newStringUtf8(Base64.decodeBase64(test.getPayload().getBody().getData())));
-                System.out.println(test.getSnippet());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void runService() throws GeneralSecurityException, IOException {
+    public void runService() throws GeneralSecurityException, IOException {
         getEmails();
     }
 }

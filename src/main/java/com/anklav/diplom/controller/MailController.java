@@ -1,11 +1,13 @@
 package com.anklav.diplom.controller;
 
-import com.anklav.diplom.Mail;
+import com.anklav.diplom.entity.Mail;
 import com.anklav.diplom.repository.MailRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 @RestController
@@ -16,7 +18,7 @@ public class MailController {
     MailRepository mailRepository;
 
     @GetMapping
-    public List<Mail> getAll() {
+    public List<Mail> getAll() throws GeneralSecurityException, IOException {
         return mailRepository.findAll();
     }
 
@@ -24,6 +26,8 @@ public class MailController {
     public Mail get(@PathVariable("id") Mail mail) {
         return mail;
     }
+
+    //TODO: добавить CRUD-методы
 
     @PostMapping
     public Mail create(@RequestBody Mail mail) {
@@ -35,4 +39,6 @@ public class MailController {
         BeanUtils.copyProperties(mail, mailFromDb, "id");
         return mailRepository.save(mail);
     }
+
+    //TODO: mail/analyze
 }
