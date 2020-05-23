@@ -19,14 +19,6 @@ const successMessage = (): Notification => ({
   type: "success",
 });
 
-const testData = (): MailListItem => ({
-  id: Math.random().toString(),
-  subject: "",
-  snippet: "",
-  date: new Date().toISOString(),
-  class: "",
-});
-
 export default class MailStore {
   @observable notification: Notification | null = null;
   @observable rows: MailListItem[] = [];
@@ -62,7 +54,7 @@ export default class MailStore {
       runInAction(() => {
         this.stateLoading = "error";
         this.notification = errorMessage();
-        this.rows = [testData(),testData(),testData(),testData(),testData(),testData(),testData(),testData(),testData()];
+        this.rows = [];
       });
     }
   };
