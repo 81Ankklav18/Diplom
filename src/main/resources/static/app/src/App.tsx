@@ -1,28 +1,17 @@
 import React, { FC } from "react";
 import { Route, Switch } from "react-router-dom";
-import MailTable from "./Screen/ListMail";
+import { Container, CssBaseline } from "@material-ui/core";
 import "./App.css";
-import {
-  Container,
-  CssBaseline,
-  AppBar,
-  Toolbar,
-  Typography,
-} from "@material-ui/core";
+import MailTable from "./Screen/ListMail";
 import { StoreProvider } from "./Service/store";
+import TopBar from "./Screen/TopBar";
 
 const NotFound: FC = () => <div>Неккоректный маршрут</div>;
 
 const App: FC = () => (
   <StoreProvider>
     <CssBaseline />
-    <AppBar position="static">
-      <Toolbar variant="dense">
-        <Typography variant="h6" color="inherit">
-          Mail classifier
-        </Typography>
-      </Toolbar>
-    </AppBar>
+    <TopBar />
     <Container className="root">
       <Switch>
         <Route path="/" exact component={MailTable} />

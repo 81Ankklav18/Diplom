@@ -1,17 +1,21 @@
 import React, { useCallback } from "react";
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableRow from "@material-ui/core/TableRow";
-import Paper from "@material-ui/core/Paper";
-import Checkbox from "@material-ui/core/Checkbox";
-import { MailListItem } from "../../../Service/types";
+import {
+  createStyles,
+  makeStyles,
+  Theme,
+  IconButton,
+  Checkbox,
+  Paper,
+  TableRow,
+  TableContainer,
+  TableCell,
+  TableBody,
+  Table,
+} from "@material-ui/core";
+import EditIcon from "@material-ui/icons/Edit";
+import { MailListItem, Id } from "../../../Service/types";
 import { EnhancedTableToolbar } from "./TableToolbar";
 import EnhancedTableHead from "./TableHead";
-import { IconButton } from "@material-ui/core";
-import EditIcon from "@material-ui/icons/Edit";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -41,10 +45,10 @@ const useStyles = makeStyles((theme: Theme) =>
 
 type Props = {
   rows: MailListItem[];
-  selected: number[];
+  selected: Id[];
   toggleSelectAll: (isAll: boolean) => void;
-  selectItem: (id: number) => void;
-  editItem: (id: number) => void;
+  selectItem: (id: Id) => void;
+  editItem: (id: Id) => void;
   removeSelected: () => void;
 };
 
@@ -71,7 +75,7 @@ export default function EnhancedTable({
           remove={removeSelected}
         />
         <TableContainer>
-          <Table className={classes.table} size="small">
+          <Table stickyHeader className={classes.table} size="small">
             <EnhancedTableHead
               numSelected={selected.length}
               onSelectAllClick={handleSelectAllClick}

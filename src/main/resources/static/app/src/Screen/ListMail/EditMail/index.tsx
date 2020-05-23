@@ -2,10 +2,10 @@ import React, { FC } from "react";
 import { Box } from "@material-ui/core";
 import { observer } from "mobx-react";
 import { Form } from "react-final-form";
-import Header from "./Header";
-import FormFields from "./Form";
 import { useStore } from "../../../Service/store";
 import { MailEditItem } from "../../../Service/types";
+import Header from "./Header";
+import FormFields from "./Form";
 
 const EditMail: FC = observer(() => {
   const store = useStore();
@@ -15,10 +15,14 @@ const EditMail: FC = observer(() => {
       <Form<MailEditItem>
         initialValues={store.editedMail}
         onSubmit={store.saveEditedMail}
-        subscription={{ pristine: true }}
-        render={({ handleSubmit }) => (
+        subscription={{ pristine: true, submitting: true }}
+        render={({ handleSubmit, submitting }) => (
           <form onSubmit={handleSubmit}>
-            <Header cancel={store.cancelMailEdit} isNew={store.isNew} />
+            <Header
+              cancel={store.cancelMailEdit}
+              isNew={store.isNew}
+              submitting={submitting}
+            />
             <FormFields />
           </form>
         )}

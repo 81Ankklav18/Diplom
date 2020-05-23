@@ -29,8 +29,9 @@ const useToolbarStyles = makeStyles((theme: Theme) =>
 type Props = {
   cancel: () => void;
   isNew: boolean;
+  submitting: boolean;
 };
-const EditMail: FC<Props> = ({ isNew, cancel }) => {
+const Header: FC<Props> = ({ isNew, cancel, submitting }) => {
   const classes = useToolbarStyles();
   return (
     <Toolbar className={classes.highlight}>
@@ -38,7 +39,7 @@ const EditMail: FC<Props> = ({ isNew, cancel }) => {
         {isNew ? "Создание" : "Редактирование"}
       </Typography>
       <Tooltip title="Сохранить">
-        <IconButton aria-label="save" type="submit">
+        <IconButton aria-label="save" type="submit" disabled={submitting}>
           <DoneIcon />
         </IconButton>
       </Tooltip>
@@ -51,4 +52,4 @@ const EditMail: FC<Props> = ({ isNew, cancel }) => {
   );
 };
 
-export default EditMail;
+export default Header;

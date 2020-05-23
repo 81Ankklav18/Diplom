@@ -1,7 +1,11 @@
 import React, { FC } from "react";
-import Backdrop from "@material-ui/core/Backdrop";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
+import {
+  Backdrop,
+  CircularProgress,
+  makeStyles,
+  createStyles,
+  Theme,
+} from "@material-ui/core";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -19,9 +23,9 @@ interface Props {
 const LoadingIndicator: FC<Props> = ({ isOpen }) => {
   const classes = useStyles();
   return (
-      <Backdrop className={classes.backdrop} open={isOpen}>
-        <CircularProgress color="inherit" />
-      </Backdrop>
+    <Backdrop className={classes.backdrop} open={isOpen}>
+      <CircularProgress color="inherit" />
+    </Backdrop>
   );
 };
 

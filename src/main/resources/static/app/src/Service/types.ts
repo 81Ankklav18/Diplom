@@ -1,4 +1,4 @@
-export type Id = number;
+export type Id = string;
 
 export type MailListItem = {
   id: Id;

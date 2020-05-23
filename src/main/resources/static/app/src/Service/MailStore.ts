@@ -19,6 +19,14 @@ const successMessage = (): Notification => ({
   type: "success",
 });
 
+const testData = (): MailListItem => ({
+  id: Math.random().toString(),
+  subject: "",
+  snippet: "",
+  date: new Date().toISOString(),
+  class: "",
+});
+
 export default class MailStore {
   @observable notification: Notification | null = null;
   @observable rows: MailListItem[] = [];
@@ -54,7 +62,7 @@ export default class MailStore {
       runInAction(() => {
         this.stateLoading = "error";
         this.notification = errorMessage();
-        this.rows = [];
+        this.rows = [testData(),testData(),testData(),testData(),testData(),testData(),testData(),testData(),testData()];
       });
     }
   };
@@ -64,7 +72,7 @@ export default class MailStore {
   @action
   selectItem = (id: Id) => {
     const selectedIndex = this.selectedIds.indexOf(id);
-    let newSelected: number[] = [];
+    let newSelected: Id[] = [];
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(this.selectedIds, id);
     } else if (selectedIndex === 0) {
@@ -104,7 +112,7 @@ export default class MailStore {
       id: null,
       subject: "",
       body: "",
-      date: new Date("2014-08-18T21:11:54"),
+      date: new Date(),
       delivered: "",
       envelop: "",
       class: "",

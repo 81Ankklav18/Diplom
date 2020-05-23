@@ -1,9 +1,6 @@
-import React from 'react';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Checkbox from '@material-ui/core/Checkbox';
-import { MailListItem } from '../../../Service/types';
+import React from "react";
+import { TableCell, TableHead, TableRow, Checkbox } from "@material-ui/core";
+import { MailListItem } from "../../../Service/types";
 
 interface HeadCell {
   disablePadding: boolean;

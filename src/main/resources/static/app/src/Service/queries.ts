@@ -1,5 +1,5 @@
-import { MailListItem, Id, MailEditItemDto, MailEditItem } from "./types";
 import axios, { AxiosPromise as R, AxiosRequestConfig, Method } from "axios";
+import { MailListItem, Id, MailEditItemDto, MailEditItem } from "./types";
 
 export const requestOptions = (
   url: string,

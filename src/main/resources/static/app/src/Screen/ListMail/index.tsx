@@ -1,4 +1,5 @@
 import React, { FC } from "react";
+import { observer } from "mobx-react";
 import {
   Drawer,
   Divider,
@@ -9,7 +10,6 @@ import {
 import MailList from "./MailList";
 import EditMail from "./EditMail";
 import { useStore } from "../../Service/store";
-import { observer } from "mobx-react";
 import Notifications from "./Notifications";
 import AnalysisResult from "./AnalysisResult";
 import LoadingIndicator from "./LoadingIndicator";
