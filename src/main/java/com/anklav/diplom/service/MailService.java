@@ -1,7 +1,11 @@
 package com.anklav.diplom.service;
 
+import com.anklav.diplom.dto.EditViewDTO;
 import com.anklav.diplom.dto.MailDTO;
+import com.anklav.diplom.entity.Mail;
+import com.anklav.diplom.mapper.EditViewMapper;
 import com.anklav.diplom.mapper.MailMapper;
+import com.anklav.diplom.repository.MailRepository;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -12,14 +16,13 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.StringUtils;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
-import com.google.api.services.gmail.model.Label;
-import com.google.api.services.gmail.model.ListLabelsResponse;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -29,21 +32,7 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
-import com.google.api.services.gmail.Gmail;
-import com.google.api.services.gmail.model.Message;
-import org.springframework.stereotype.Service;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.URLDecoder;
-import java.util.Properties;
 import java.util.stream.Collectors;
-
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
 
 @Service
 public class MailService {
@@ -58,7 +47,10 @@ public class MailService {
 
     private static JsonMapper jsonMapper = new JsonMapper();
 
-    public List<MailDTO> getEmails() throws GeneralSecurityException, IOException {
+    @Autowired
+    MailRepository mailRepository;
+
+    public void getEmails() throws GeneralSecurityException, IOException {
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         Gmail service = new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
@@ -95,15 +87,16 @@ public class MailService {
 
         List<MailDTO> mailDTOList = MailMapper.getViewDTO(resultListForDB
                 .stream()
-                .filter(y -> y.getLabelIds().contains("Label_2665037630844836558") || y.getLabelIds().contains("Label_3743344143877711668"))
+                .filter(y -> y.getLabelIds().contains("Label_2665037630844836558")
+                        || y.getLabelIds().contains("Label_3743344143877711668"))
                 .collect(Collectors.toList()));
 
 //        jsonMapper.writeValueAsString(mailDTOList);
 
-        return mailDTOList;
+        mailRepository.saveAll(MailMapper.getMailsEntity(mailDTOList));
     }
 
-    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
+    private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
         // Load client secrets.
         InputStream in = MailService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         if (in == null) {
@@ -123,5 +116,78 @@ public class MailService {
 
     public void runService() throws GeneralSecurityException, IOException {
         getEmails();
+    }
+
+    public Mail createMessage(Mail mail) {
+        mail.setSnippet(mail.getBody().length() > 300 ? mail.getBody().substring(0, 300) : mail.getBody());
+        mail.setMessageId(mail.getId().toString());
+
+        mailRepository.save(mail);
+
+        return mail;
+    }
+
+    public void deleteMessage(List<String> ids) {
+        Long mailId = null;
+
+        for (int i = 0; i < ids.size(); i++) {
+            try {
+                int finalI = i;
+                mailId = mailRepository.findAll()
+                        .stream()
+                        .filter(x -> x.getMessageId().equals(ids.get(finalI)))
+                        .map(Mail::getId)
+                        .findFirst()
+                        .get();
+            } catch (Exception e) {
+
+            }
+
+            if (mailId == null) {
+                mailId = mailRepository.getOne(Long.valueOf(ids.get(i))).getId();
+            }
+
+            mailRepository.deleteById(mailId);
+        }
+    }
+
+    public EditViewDTO getById(String id) {
+        Mail mail = getMailById(id);
+
+        return EditViewMapper.MailToEdit(mail);
+    }
+
+    public Mail getMailById(String id) {
+        Mail mail = null;
+        try {
+            mail = mailRepository.findAll()
+                    .stream()
+                    .filter(x -> x.getMessageId().equals(id))
+                    .findFirst()
+                    .orElseGet(null);
+        } catch (Exception e) {
+
+        }
+
+
+        if (mail == null) {
+            mail = mailRepository.getOne(Long.valueOf(id));
+        }
+
+        return mail;
+    }
+
+    public Mail updateMail(Mail mailFromDb, EditViewDTO editViewDTO) {
+        mailFromDb.setBody(editViewDTO.getBody());
+        mailFromDb.setDate(editViewDTO.getDate());
+        mailFromDb.setDeliveredTo(editViewDTO.getDeliveredTo());
+        mailFromDb.setEnvelopeFrom(editViewDTO.getEnvelopeFrom());
+        mailFromDb.setLabel(editViewDTO.getLabel());
+        mailFromDb.setSubject(editViewDTO.getSubject());
+        mailFromDb.setSnippet(editViewDTO.getBody().length() > 300 ?
+                editViewDTO.getBody().substring(0, 300) : editViewDTO.getBody());
+        mailFromDb.setMessageId(editViewDTO.getId());
+
+        return mailFromDb;
     }
 }

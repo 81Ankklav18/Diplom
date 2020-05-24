@@ -111,7 +111,7 @@ export default function EnhancedTable({
                     <TableCell>{row.subject}</TableCell>
                     <TableCell>{row.snippet}</TableCell>
                     <TableCell>{row.date}</TableCell>
-                    <TableCell>{row.class}</TableCell>
+                    <TableCell>{row.label}</TableCell>
                     <TableCell padding="checkbox">
                       <IconButton onClick={() => editItem(row.id)}>
                         <EditIcon />

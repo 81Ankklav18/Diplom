@@ -1,6 +1,7 @@
 package com.anklav.diplom.mapper;
 
 import com.anklav.diplom.dto.MailDTO;
+import com.anklav.diplom.entity.Mail;
 import com.google.api.client.util.Base64;
 import com.google.api.client.util.StringUtils;
 import com.google.api.services.gmail.model.Message;
@@ -58,5 +59,22 @@ public class MailMapper {
         .collect(Collectors.toList());
 
         return mailDTOList;
+    }
+
+    public static List<Mail> getMailsEntity(List<MailDTO> mailDTOS) {
+        return mailDTOS.stream()
+                .map(x -> {
+                    Mail mail = new Mail();
+                    mail.setMessageId(x.getId());
+                    mail.setBody(x.getBody());
+                    mail.setDate(x.getDate());
+                    mail.setDeliveredTo(x.getDeliveredTo());
+                    mail.setEnvelopeFrom(x.getEnvelopeFrom());
+                    mail.setLabel(x.getLabel());
+                    mail.setSnippet(x.getSnippet());
+                    mail.setSubject(x.getSubject());
+                    return mail;
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -19,9 +19,9 @@ const Form: FC = () => (
       <InputField name="subject" label="Тема" />
       <InputField name="body" label="Текст" multiline rows={5} />
       <DateField name="date" label="Дата" />
-      <InputField name="delivered" label="Получатель" />
-      <InputField name="envelop" label="Отправитель" />
-      <InputField name="class" label="Класс" />
+      <InputField name="deliveredTo" label="Получатель" />
+      <InputField name="envelopeFrom" label="Отправитель" />
+      <InputField name="label" label="Класс" />
     </>
   </Box>
 );

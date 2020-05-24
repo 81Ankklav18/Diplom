@@ -13,7 +13,7 @@ const headCells: HeadCell[] = [
   { id: "subject", numeric: false, disablePadding: false, label: "Тема" },
   { id: "snippet", numeric: false, disablePadding: false, label: "Фрагмент" },
   { id: "date", numeric: false, disablePadding: false, label: "Дата" },
-  { id: "class", numeric: false, disablePadding: false, label: "Класс" },
+  { id: "label", numeric: false, disablePadding: false, label: "Класс" },
 ];
 
 interface EnhancedTableProps {

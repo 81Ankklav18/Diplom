@@ -105,9 +105,9 @@ export default class MailStore {
       subject: "",
       body: "",
       date: new Date(),
-      delivered: "",
-      envelop: "",
-      class: "",
+      deliveredTo: "",
+      envelopeFrom: "",
+      label: "",
     });
   @action
   editMail = async (id: Id) => {

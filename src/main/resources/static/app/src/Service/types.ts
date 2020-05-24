@@ -5,7 +5,7 @@ export type MailListItem = {
   subject: string | null;
   snippet: string | null;
   date: string | null;
-  class: string | null;
+  label: string | null;
 };
 
 export type MailEditItemDto = {
@@ -13,9 +13,9 @@ export type MailEditItemDto = {
   subject: string;
   body: string;
   date: string;
-  delivered: string;
-  envelop: string;
-  class: string | null;
+  deliveredTo: string;
+  envelopeFrom: string;
+  label: string | null;
 };
 
 export type MailEditItem = {
@@ -23,9 +23,9 @@ export type MailEditItem = {
   subject: string;
   body: string;
   date: Date;
-  delivered: string;
-  envelop: string;
-  class: string | null;
+  deliveredTo: string;
+  envelopeFrom: string;
+  label: string | null;
 };
 
 export type LearningResult = {
