@@ -1,9 +1,10 @@
 import React, { FC } from "react";
 import { Typography, Box } from "@material-ui/core";
 import { Field } from "react-final-form";
-import { InputField, DateField } from "./InputField";
+import { InputField, DateField, RenderField } from "./InputField";
 
-const Form: FC = () => (
+type Props = { isNew: boolean };
+const Form: FC<Props> = ({ isNew }) => (
   <Box m={2}>
     <>
       <Field<string>
@@ -22,6 +23,7 @@ const Form: FC = () => (
       <InputField name="deliveredTo" label="Получатель" />
       <InputField name="envelopeFrom" label="Отправитель" />
       <InputField name="label" label="Класс" />
+      {isNew && <RenderField name="tree" label="Дерево" multiline rows={20} />}
     </>
   </Box>
 );

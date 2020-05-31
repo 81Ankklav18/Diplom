@@ -63,7 +63,6 @@ export default class AnalysisStore {
   toSimilarity = () => {
     this.processing = "SIMILARITY";
     this.stage = "SETTINGS";
-    console.log(this.openedSettings);
   };
   @action
   selectSimilarityAlgorithm = async (algorithmCode: string, topN: number) => {
