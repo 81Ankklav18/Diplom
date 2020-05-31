@@ -13,7 +13,7 @@ interface Props {
   handleClose: () => void;
 }
 
-const AnalysisResult: FC<Props> = ({ content, handleClose }) => (
+const ResultDialog: FC<Props> = ({ content, handleClose }) => (
   <Dialog
     open={content !== null}
     onClose={handleClose}
@@ -35,4 +35,4 @@ const AnalysisResult: FC<Props> = ({ content, handleClose }) => (
   </Dialog>
 );
 
-export default AnalysisResult;
+export default ResultDialog;

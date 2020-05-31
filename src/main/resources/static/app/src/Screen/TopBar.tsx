@@ -12,9 +12,9 @@ import {
 } from "@material-ui/core";
 import ReplayIcon from "@material-ui/icons/Replay";
 import AddCircleOutline from "@material-ui/icons/AddCircleOutline";
-import PlayCircleOutline from "@material-ui/icons/PlayCircleOutline";
 import ArrowUpward from "@material-ui/icons/ArrowUpward";
 import { useStore } from "../Service/store";
+import RunButton from "./RunButton";
 
 const useStyles = makeStyles((theme) => ({
   offset: theme.mixins.toolbar,
@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
       bottom: "20px",
       position: "fixed",
       left: "20px",
-      zIndex: 100
+      zIndex: 100,
     },
   }),
 }));
@@ -61,15 +61,11 @@ const TopBar: FC = observer(() => {
               <ReplayIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Начать анализ данных">
-            <IconButton
-              aria-label="start processing"
-              color="inherit"
-              onClick={store.analyze}
-            >
-              <PlayCircleOutline />
-            </IconButton>
-          </Tooltip>
+          <RunButton
+            startClassification={store.analysisStore.toClassification}
+            startSimilaritySearch={store.analysisStore.toSimilarity}
+            isSimilarityDisabled={store.analysisStore.isSimilarityDisabled}
+          />
         </Toolbar>
       </AppBar>
       <Fab

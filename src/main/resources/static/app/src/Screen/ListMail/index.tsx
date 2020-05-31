@@ -11,8 +11,7 @@ import MailList from "./MailList";
 import EditMail from "./EditMail";
 import { useStore } from "../../Service/store";
 import Notifications from "./Notifications";
-import AnalysisResult from "./AnalysisResult";
-import LoadingIndicator from "./LoadingIndicator";
+import Analysis from "./Analysis";
 
 const drawerWidth = 450;
 
@@ -65,11 +64,7 @@ const MailRoot: FC = observer(() => {
         close={store.closeNotification}
         notification={store.notification}
       />
-      <AnalysisResult
-        content={store.analysisResult}
-        handleClose={store.analyzeResultClose}
-      />
-      <LoadingIndicator isOpen={store.analysisLoading}/>
+      <Analysis />
     </>
   );
 });
