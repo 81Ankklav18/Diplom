@@ -12,7 +12,8 @@ public class EditViewMapper {
                 mail.getBody(),
                 mail.getDeliveredTo(),
                 mail.getEnvelopeFrom(),
-                mail.getDate());
+                mail.getDate(),
+                mail.getTree());
     }
 
     public static EditViewDTO MailToGetByID(Mail mail) {
@@ -23,6 +24,7 @@ public class EditViewMapper {
                 mail.getBody(),
                 mail.getDeliveredTo(),
                 mail.getEnvelopeFrom(),
-                mail.getDate());
+                mail.getDate(),
+                mail.getTree());
     }
 }

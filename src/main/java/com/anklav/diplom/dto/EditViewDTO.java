@@ -13,9 +13,10 @@ public class EditViewDTO {
     String deliveredTo;
     String envelopeFrom;
     Date date;
+    String tree;
 
-    public EditViewDTO(String id, String label, String subject, String body,
-                       String deliveredTo, String envelopeFrom, Date date) {
+    public EditViewDTO(String id, String label, String subject, String body, String deliveredTo,
+                       String envelopeFrom, Date date, String tree) {
         this.id = id;
         this.label = label;
         this.subject = subject;
@@ -23,5 +24,6 @@ public class EditViewDTO {
         this.deliveredTo = deliveredTo;
         this.envelopeFrom = envelopeFrom;
         this.date = date;
+        this.tree = tree;
     }
 }

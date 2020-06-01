@@ -46,12 +46,6 @@ public class MailController {
         return mailService.createMessage(mailRepository.save(mail));
     }
 
-//    @PutMapping("{id}")
-//    public Mail update(@PathVariable("id") Mail mailFromDb, @RequestBody Mail mail) {
-//        BeanUtils.copyProperties(mail, mailFromDb, "id");
-//        return mailRepository.save(mail);
-//    }
-
     @PutMapping("{id}")
     public Mail update(@PathVariable("id") String id, @RequestBody EditViewDTO editViewDTO) {
         Mail mailFromDb = mailService.getMailById(id);
@@ -63,5 +57,10 @@ public class MailController {
         mailService.deleteMessage(ids);
     }
 
+    @PostMapping("/analyze")
+    public void analyze(@RequestBody List<String> ids) throws Exception {
+        mailService.analyze(ids);
+        System.out.println();
+    }
     //TODO: mail/analyze
 }

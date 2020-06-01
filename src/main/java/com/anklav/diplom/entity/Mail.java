@@ -27,4 +27,6 @@ public class Mail {
     @Column(columnDefinition="VARCHAR(500)")
     private String snippet;
     private Date date;
+    @Column(columnDefinition="VARCHAR(4000)")
+    private String tree;
 }

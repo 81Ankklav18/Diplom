@@ -5,9 +5,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class DiplomApplication {
-//TODO: удаление, выгрузка из БД неуникальна, обновление по gmail-UID, генерация снипета и айди если пустые
-//TODO: analyze с массивом idшников -- пост запрос
-//TODO: сервис для анализа -- придумать что можно отобразить
+//TODO: не запускать процесс построения дерева, если в БД оно уже есть
+//TODO: добавить таблицы для построения решетки. Если в БД нету такого ключа -- генерим дерево и добавляем в БД
+
+	//TODO: классификация: на вход: {ids}, {nameOfAlgo}. На выход: pre, rec, f1
+	//TODO: similarity: на вход: get{id}. На выход: top-N Edit'oв
+	//TODO: Также в Edit'ы подавать дерево
+	//TODO:
 	public static void main(String[] args) {
 		SpringApplication.run(DiplomApplication.class, args);
 	}
