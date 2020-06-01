@@ -1,59 +1,47 @@
 import { observable, computed, action, runInAction } from "mobx";
 import { MailListItem, MailEditItem, Id, Notification } from "./types";
 import { Mail } from "./queries";
-
-type ValueOf<T> = T[keyof T];
-const stateLoading = {
-  pending: "pending",
-  done: "done",
-  error: "error",
-} as const;
-type StateLoading = ValueOf<typeof stateLoading>;
-
-const errorMessage = (): Notification => ({
-  message: "Произошла ошибка",
-  type: "error",
-});
-const successMessage = (): Notification => ({
-  message: "Операция выполнена",
-  type: "success",
-});
+import AnalysisStore from "./AnalysisStore";
 
 export default class MailStore {
-  @observable notification: Notification | null = null;
-  @observable rows: MailListItem[] = [];
   @observable selectedIds: Id[] = [];
-  @observable editedMail: MailEditItem | null = null;
-  @observable stateLoading: StateLoading = "done";
-  @observable analysisResult: string | null = null;
-  @observable analysisLoading: boolean = false;
-
-  @computed get selectedCount() {
-    return this.selectedIds.length;
-  }
-  @computed get isNew() {
-    return this.editedMail !== null && this.editedMail.id === null;
-  }
-
+  @observable notification: Notification | null = null;
   @action
   closeNotification = () => (this.notification = null);
+  @action
+  notifyError = () =>
+    (this.notification = {
+      message: "Произошла ошибка",
+      type: "error",
+    });
+  @action
+  notifySuccess = () =>
+    (this.notification = {
+      message: "Операция выполнена",
+      type: "success",
+    });
 
+  analysisStore = new AnalysisStore(
+    this.selectedIds,
+    this.notifySuccess,
+    this.notifyError
+  );
+
+  @observable rows: MailListItem[] = [];
+  @observable editedMail: MailEditItem | null = null;
   @action
   reloadTable = async () => {
-    this.stateLoading = "pending";
     try {
       const data = await Mail.getAll();
       runInAction(() => {
-        this.stateLoading = "done";
         this.rows = data.data;
         const set = new Set(data.data.map((e) => e.id));
         this.selectedIds = this.selectedIds.filter((e) => set.has(e));
-        this.notification = successMessage();
+        this.notifySuccess();
       });
     } catch (error) {
       runInAction(() => {
-        this.stateLoading = "error";
-        this.notification = errorMessage();
+        this.notifyError();
         this.rows = [];
       });
     }
@@ -81,23 +69,21 @@ export default class MailStore {
   };
   @action
   removeSelected = async () => {
-    this.stateLoading = "pending";
     try {
       await Mail.remove(this.selectedIds);
       runInAction(() => {
-        this.stateLoading = "done";
-        this.notification = successMessage();
+        this.notifySuccess();
         this.editedMail = null;
       });
     } catch (error) {
-      runInAction(() => {
-        this.stateLoading = "error";
-        this.notification = errorMessage();
-      });
+      runInAction(this.notifyError);
     }
     await this.reloadTable();
   };
 
+  @computed get isNew() {
+    return this.editedMail !== null && this.editedMail.id === null;
+  }
   @action
   createMail = () =>
     (this.editedMail = {
@@ -111,19 +97,14 @@ export default class MailStore {
     });
   @action
   editMail = async (id: Id) => {
-    this.stateLoading = "pending";
     try {
       const data = await Mail.getItem(id);
       runInAction(() => {
-        this.stateLoading = "done";
         this.editedMail = Mail.toModel(data.data);
-        this.notification = successMessage();
+        this.notifySuccess();
       });
     } catch (error) {
-      runInAction(() => {
-        this.stateLoading = "error";
-        this.notification = errorMessage();
-      });
+      runInAction(this.notifyError);
     }
     await this.reloadTable();
   };
@@ -133,47 +114,17 @@ export default class MailStore {
     const dto = Mail.toDto(item);
     const promise =
       this.editedMail.id === null ? Mail.create(dto) : Mail.update(dto);
-    this.stateLoading = "pending";
     try {
       await promise;
       runInAction(() => {
-        this.stateLoading = "done";
-        this.notification = successMessage();
+        this.notifySuccess();
         this.editedMail = null;
       });
     } catch (error) {
-      runInAction(() => {
-        this.stateLoading = "error";
-        this.notification = errorMessage();
-      });
+      runInAction(this.notifyError);
     }
     await this.reloadTable();
   };
   @action
   cancelMailEdit = () => (this.editedMail = null);
-
-  @action
-  analyze = async () => {
-    this.stateLoading = "pending";
-    this.analysisLoading = true;
-    try {
-      const data = await Mail.analyze(this.selectedIds);
-      runInAction(() => {
-        this.stateLoading = "done";
-        this.analysisResult = JSON.stringify(data.data, null, "\t");
-        this.notification = successMessage();
-      });
-    } catch (error) {
-      runInAction(() => {
-        this.stateLoading = "error";
-        this.notification = errorMessage();
-      });
-    }
-    runInAction(() => {
-      this.analysisLoading = false;
-    });
-    await this.reloadTable();
-  };
-  @action
-  analyzeResultClose = () => (this.analysisResult = null);
 }

@@ -36,3 +36,16 @@ export type Notification = {
   message?: string;
   type: "success" | "info" | "warning" | "error";
 };
+
+
+export type SimilarityResult = {
+  items: MailListItem[];
+  message?: string;
+};
+
+export type ClassificationResult = {
+  precision?: number;
+  recall?: number;
+  f1?: number;
+  message?: string;
+};

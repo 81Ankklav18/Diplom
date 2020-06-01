@@ -1,31 +1,25 @@
-import axios, { AxiosPromise as R, AxiosRequestConfig, Method } from "axios";
-import { MailListItem, Id, MailEditItemDto, MailEditItem } from "./types";
+import axios, { AxiosPromise as R, Method } from "axios";
+import { MailListItem, Id, MailEditItemDto, MailEditItem, ClassificationResult, SimilarityResult } from "./types";
 
-export const requestOptions = (
+const fetcher = <T>(
   url: string,
   method: Method,
   data?: object | FormData
-): AxiosRequestConfig => ({
-  url,
-  method,
-  data,
-});
+): R<T> =>
+  axios.request<T>({
+    url,
+    method,
+    data,
+  });
 
 export const Mail = {
-  getAll: (): R<MailListItem[]> =>
-    axios.request<MailListItem[]>(requestOptions("/mail", "GET")),
-  getItem: (id: Id): R<MailEditItemDto> =>
-    axios.request<MailEditItemDto>(requestOptions(`/mail/${id}`, "GET")),
-  analyze: (id: Id[]): R<MailEditItemDto> =>
-    axios.request<MailEditItemDto>(requestOptions("/mail/analyze", "POST", id)),
-  create: (item: MailEditItemDto): R<MailEditItemDto> =>
-    axios.request<MailEditItemDto>(requestOptions("/mail", "POST", item)),
-  update: (item: MailEditItemDto): R<MailEditItemDto> =>
-    axios.request<MailEditItemDto>(
-      requestOptions(`/mail/${item.id}`, "PUT", item)
-    ),
-  remove: (ids: Id[]): R<void> =>
-    axios.request(requestOptions("/mail", "DELETE", ids)),
+  getAll: () => fetcher<MailListItem[]>("/mail", "GET"),
+  getItem: (id: Id) => fetcher<MailEditItemDto>(`/mail/${id}`, "GET"),
+  create: (item: MailEditItemDto) =>
+    fetcher<MailEditItemDto>("/mail", "POST", item),
+  update: (item: MailEditItemDto) =>
+    fetcher<MailEditItemDto>(`/mail/${item.id}`, "PUT", item),
+  remove: (ids: Id[]) => fetcher("/mail", "DELETE", ids),
   toDto: (model: MailEditItem): MailEditItemDto => ({
     ...model,
     date: model.date.toISOString(),
@@ -34,4 +28,9 @@ export const Mail = {
     ...model,
     date: new Date(model.date),
   }),
+
+  classification: (id: Id[], method: string) =>
+    fetcher<ClassificationResult>("/mail/classification", "POST", { id, method }),
+  similarity: (id: Id, method: string, topN: number) =>
+    fetcher<SimilarityResult>("/mail/similarity", "POST", { id, method, topN }),
 };

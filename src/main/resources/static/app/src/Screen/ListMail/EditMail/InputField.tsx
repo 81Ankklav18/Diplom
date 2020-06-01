@@ -36,6 +36,32 @@ export const InputField: FC<Props> = ({ name, label, multiline, rows }) => (
     )}
   />
 );
+interface RenderFieldProps {
+  name: string;
+  label: string;
+  multiline?: boolean;
+  rows?: number;
+}
+
+export const RenderField: FC<RenderFieldProps> = ({ name, label, multiline, rows }) => (
+  <Field<string>
+    name={name}
+    render={({ input }) => (
+      <TextField
+        disabled
+        value={input.value}
+        label={label}
+        multiline={multiline}
+        rows={rows}
+        name={input.name}
+        variant="outlined"
+        fullWidth
+        margin="dense"
+        size="small"
+      />
+    )}
+  />
+);
 
 interface DateProps {
   name: string;

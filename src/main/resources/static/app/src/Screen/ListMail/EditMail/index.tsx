@@ -23,7 +23,7 @@ const EditMail: FC = observer(() => {
               isNew={store.isNew}
               submitting={submitting}
             />
-            <FormFields />
+            <FormFields isNew={store.isNew} />
           </form>
         )}
       />
