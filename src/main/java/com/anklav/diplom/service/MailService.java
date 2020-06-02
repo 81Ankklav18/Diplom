@@ -1,6 +1,8 @@
 package com.anklav.diplom.service;
 
 import com.anklav.diplom.algorithm.CloseByOne;
+import com.anklav.diplom.algorithm.Niagara;
+import com.anklav.diplom.algorithm.NiagaraObject;
 import com.anklav.diplom.dto.EditViewDTO;
 import com.anklav.diplom.dto.MailDTO;
 import com.anklav.diplom.entity.Mail;
@@ -198,6 +200,9 @@ public class MailService {
     }
 
     public void classification(List<String> ids) {
+        Map<Mail, String> classification = new ConcurrentHashMap<>();
+        TreeUtils treeUtils = new TreeUtils();
+
         List<Mail> mailDTOList = getMailsByIds(ids);
 
         List<Mail> class1 = new ArrayList<>();
@@ -264,16 +269,73 @@ public class MailService {
 
         fillTrees(ids);
 
+        List<NiagaraObject> niagaraObjectList1 = new ArrayList<>();
+        List<NiagaraObject> niagaraObjectList2 = new ArrayList<>();
+
         ConcurrentHashMap<Set<String>, Tree> matrixOfClass1 = new ConcurrentHashMap<>();
         ConcurrentHashMap<Set<String>, Tree> matrixOfClass2 = new ConcurrentHashMap<>();
 
         for (Mail mail : class1) {
-            matrixOfClass1.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
+            if (Tree.valueOf(mail.getTree()) != null)
+                matrixOfClass1.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
         }
 
         for (Mail mail : class2) {
-            matrixOfClass2.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
+            if (Tree.valueOf(mail.getTree()) != null)
+                matrixOfClass2.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
         }
+
+        for (int i = 0; i < class1.size(); i++) {
+            niagaraObjectList1.add(new NiagaraObject(Set.of(Long.toString(class1.get(i).getId())),
+                    Tree.valueOf(class1.get(i).getTree())));
+        }
+
+        for (int i = 0; i < class2.size(); i++) {
+            niagaraObjectList2.add(new NiagaraObject(Set.of(Long.toString(class2.get(i).getId())),
+                    Tree.valueOf(class1.get(i).getTree())));
+        }
+
+        Niagara niagara = new Niagara();
+        Map<Set<String>, Tree> niagaraList = niagara.debut(niagaraObjectList1, niagaraObjectList2);
+
+        for (Mail mail : mailDTOList) {
+            niagaraList.forEach((key, value) -> {
+                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
+                    classification.put(mail, FABLES);
+                }
+            });
+
+            if (!classification.containsKey(mail)) {
+                classification.put(mail, COVID);
+            }
+        }
+        System.out.println("Classify END");
+
+        AtomicInteger tpN = new AtomicInteger();
+        AtomicInteger tnN = new AtomicInteger();
+        AtomicInteger fpN = new AtomicInteger();
+        AtomicInteger fnN = new AtomicInteger();
+
+        classification.forEach((k, v) -> {
+            if (k.getLabel().equals(v) && v.equals(FABLES)) {
+                tpN.getAndIncrement();
+            } else {
+                tnN.getAndIncrement();
+            }
+
+            if (k.getLabel().equals(v) && v.equals(COVID)) {
+                fpN.getAndIncrement();
+            } else {
+                fnN.getAndIncrement();
+            }
+        });
+
+        double precisionN = (double) tpN.get() / ((double) fpN.get() + (double) fpN.get());
+        double recallN = (double) tpN.get() / ((double) fpN.get() + (double) fnN.get());
+
+        double f1N = 2 * ((precisionN * recallN) / (precisionN + recallN));
+
+        System.out.println(f1N);
 
         CloseByOne closeByOneC1 = new CloseByOne(matrixOfClass1, class1.size());
         CloseByOne closeByOneC2 = new CloseByOne(matrixOfClass2, class2.size());
@@ -283,9 +345,6 @@ public class MailService {
         System.out.println("CbO2 START");
         Map<Set<String>, Tree> resultCbO2 = closeByOneC2.recursiveCbO(matrixOfClass2);
         System.out.println("CbO2 END");
-
-        Map<Mail, String> classification = new ConcurrentHashMap<>();
-        TreeUtils treeUtils = new TreeUtils();
 
         System.out.println("Classify START");
 //        for (Mail mail : mailDTOList) {

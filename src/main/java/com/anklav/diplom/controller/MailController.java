@@ -8,11 +8,20 @@ import com.anklav.diplom.entity.Mail;
 import com.anklav.diplom.mapper.TableViewMapper;
 import com.anklav.diplom.repository.MailRepository;
 import com.anklav.diplom.service.MailService;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +29,8 @@ import java.util.stream.Collectors;
 @RequestMapping("mail")
 @CrossOrigin("*")
 public class MailController {
+    private static JsonMapper jsonMapper = new JsonMapper();
+
     @Autowired
     MailRepository mailRepository;
     @Autowired
@@ -49,10 +60,8 @@ public class MailController {
     }
 
     @PostMapping("import")
-    public void importDataJson(@RequestBody List<Mail> mails) {
-        for (Mail mail : mails) {
-            mailService.createMessage(mailRepository.save(mail));
-        }
+    public void importDataJson() throws IOException {
+
     }
 
     @GetMapping("export")

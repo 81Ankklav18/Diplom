@@ -1,5 +1,6 @@
 package com.anklav.diplom.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -18,7 +19,7 @@ public class Mail {
     private String label;
     @Column(columnDefinition="VARCHAR(500)")
     private String subject;
-    @Column(columnDefinition="VARCHAR(4000)")
+    @Column(columnDefinition="VARCHAR(10000)")
     private String body;
     @Column(columnDefinition="VARCHAR(500)")
     private String deliveredTo;
@@ -27,6 +28,6 @@ public class Mail {
     @Column(columnDefinition="VARCHAR(500)")
     private String snippet;
     private Date date;
-    @Column(columnDefinition="VARCHAR(4000)")
+    @Column(columnDefinition="VARCHAR(10000)")
     private String tree;
 }
