@@ -197,7 +197,7 @@ public class MailService {
         return mailFromDb;
     }
 
-    public void analyze(List<String> ids) {
+    public void classification(List<String> ids) {
         List<Mail> mailDTOList = getMailsByIds(ids);
 
         List<Mail> class1 = new ArrayList<>();

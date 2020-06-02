@@ -102,7 +102,7 @@ public class CloseByOne {
 
         val1.forEach((k1, v1) -> {
             val2.forEach((k2, v2) -> {
-                Set<String> set = new HashSet();
+                Set<String> set = new HashSet<>();
                 set.addAll(k1);
                 set.addAll(k2);
                 Tree resultTree = treeUtils.treesIntersection(v1, v2);

@@ -1,6 +1,8 @@
 package com.anklav.diplom.controller;
 
+import com.anklav.diplom.dto.ClassificationDTO;
 import com.anklav.diplom.dto.EditViewDTO;
+import com.anklav.diplom.dto.SimilarityDTO;
 import com.anklav.diplom.dto.TableViewDTO;
 import com.anklav.diplom.entity.Mail;
 import com.anklav.diplom.mapper.TableViewMapper;
@@ -46,6 +48,18 @@ public class MailController {
         return mailService.createMessage(mailRepository.save(mail));
     }
 
+    @PostMapping("import")
+    public void importDataJson(@RequestBody List<Mail> mails) {
+        for (Mail mail : mails) {
+            mailService.createMessage(mailRepository.save(mail));
+        }
+    }
+
+    @GetMapping("export")
+    public List<Mail> exportDataJson() {
+        return mailRepository.findAll();
+    }
+
     @PutMapping("{id}")
     public Mail update(@PathVariable("id") String id, @RequestBody EditViewDTO editViewDTO) {
         Mail mailFromDb = mailService.getMailById(id);
@@ -57,10 +71,15 @@ public class MailController {
         mailService.deleteMessage(ids);
     }
 
-    @PostMapping("/analyze")
-    public void analyze(@RequestBody List<String> ids) throws Exception {
-        mailService.analyze(ids);
+    @PostMapping("classification")
+    public void classification(@RequestBody ClassificationDTO dto) throws Exception {
+        mailService.classification(dto.getId());
         System.out.println();
     }
-    //TODO: mail/analyze
+
+    @PostMapping("similarity")
+    public void similarity(@RequestBody SimilarityDTO dto) throws Exception {
+        //TODO: similarity
+        System.out.println();
+    }
 }

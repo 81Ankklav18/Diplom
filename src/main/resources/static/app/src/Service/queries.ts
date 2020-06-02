@@ -33,4 +33,6 @@ export const Mail = {
     fetcher<ClassificationResult>("/mail/classification", "POST", { id, method }),
   similarity: (id: Id, method: string, topN: number) =>
     fetcher<SimilarityResult>("/mail/similarity", "POST", { id, method, topN }),
+  importData: (data: MailEditItem[]) =>
+    fetcher<void>("/mail/import", "POST", data),
 };

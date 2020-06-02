@@ -8,15 +8,15 @@ export const algorithms = ["CB0", "NORRIS", "NIAGARA"];
 export default class AnalysisStore {
   notifySuccess: () => void;
   notifyError: () => void;
-  selectedIds: Id[];
+  getSelectedIds: () => Id[];
   constructor(
-    selectedIds: Id[],
+    getSelectedIds: () => Id[],
     notifySuccess: () => void,
     notifyError: () => void
   ) {
     this.notifySuccess = notifySuccess;
     this.notifyError = notifyError;
-    this.selectedIds = selectedIds;
+    this.getSelectedIds = getSelectedIds;
   }
   @observable stage: AnalysisStage = "NONE";
   @observable processing: ProcessingMethod = "NONE";
@@ -26,9 +26,6 @@ export default class AnalysisStore {
   }
   @computed get openedSettings(): ProcessingMethod {
     return this.stage === "SETTINGS" ? this.processing : "NONE";
-  }
-  @computed get isSimilarityDisabled() {
-    return this.selectedIds.length !== 1;
   }
   @action
   resultClose = () => {
@@ -46,7 +43,7 @@ export default class AnalysisStore {
   selectClassificationAlgorithm = async (algorithmCode: string) => {
     this.stage = "FETCHING";
     try {
-      const data = await Mail.classification(this.selectedIds, algorithmCode);
+      const data = await Mail.classification(this.getSelectedIds(), algorithmCode);
       runInAction(() => {
         this.result = JSON.stringify(data.data, null, "\t");
         this.notifySuccess();
@@ -69,7 +66,7 @@ export default class AnalysisStore {
     this.stage = "FETCHING";
     try {
       const data = await Mail.similarity(
-        this.selectedIds[0],
+        this.getSelectedIds()[0],
         algorithmCode,
         topN
       );

@@ -12,6 +12,7 @@ import EditMail from "./EditMail";
 import { useStore } from "../../Service/store";
 import Notifications from "./Notifications";
 import Analysis from "./Analysis";
+import ImportExportData from "./ImportExportData";
 
 const drawerWidth = 450;
 
@@ -47,6 +48,13 @@ const MailRoot: FC = observer(() => {
   return (
     <>
       <MailList />
+      <ImportExportData
+        handleClose={store.closeImpExpDialog}
+        isOpen={store.isOpenImportExport}
+        onError={store.notifyError}
+        onExportData={store.exportDataFromDb}
+        onImportData={store.importDataToDb}
+      />
       <Drawer
         className={classes.drawer}
         open={store.editedMail !== null}

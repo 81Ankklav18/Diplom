@@ -23,7 +23,7 @@ const Form: FC<Props> = ({ isNew }) => (
       <InputField name="deliveredTo" label="Получатель" />
       <InputField name="envelopeFrom" label="Отправитель" />
       <InputField name="label" label="Класс" />
-      {isNew && <RenderField name="tree" label="Дерево" multiline rows={20} />}
+      {!isNew && <RenderField name="tree" label="Дерево" multiline rows={20} />}
     </>
   </Box>
 );

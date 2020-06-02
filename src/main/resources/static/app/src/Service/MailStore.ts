@@ -5,6 +5,10 @@ import AnalysisStore from "./AnalysisStore";
 
 export default class MailStore {
   @observable selectedIds: Id[] = [];
+  @computed get isSimilarityDisabled() {
+    console.log(this.selectedIds.length)
+    return this.selectedIds.length !== 1;
+  }
   @observable notification: Notification | null = null;
   @action
   closeNotification = () => (this.notification = null);
@@ -21,8 +25,10 @@ export default class MailStore {
       type: "success",
     });
 
+  @action
+  getSelectedIds = () => this.selectedIds;
   analysisStore = new AnalysisStore(
-    this.selectedIds,
+    this.getSelectedIds,
     this.notifySuccess,
     this.notifyError
   );
@@ -127,4 +133,25 @@ export default class MailStore {
   };
   @action
   cancelMailEdit = () => (this.editedMail = null);
+
+  @observable
+  isOpenImportExport: boolean = false;
+  @action
+  openImpExpDialog = () => (this.isOpenImportExport = true);
+  @action
+  closeImpExpDialog = () => (this.isOpenImportExport = false);
+  @action
+  importDataToDb = async (data: MailEditItem[]) => {
+    try {
+      await Mail.importData(data);
+      runInAction(this.notifySuccess);
+    } catch (error) {
+      runInAction(this.notifyError);
+    }
+    await this.reloadTable();
+  };
+  @action
+  exportDataFromDb = () => {
+    window.open("/mail/export", "_blank");
+  };
 }
