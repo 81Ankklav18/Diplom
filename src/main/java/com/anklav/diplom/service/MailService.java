@@ -3,9 +3,13 @@ package com.anklav.diplom.service;
 import com.anklav.diplom.algorithm.CloseByOne;
 import com.anklav.diplom.algorithm.Niagara;
 import com.anklav.diplom.algorithm.NiagaraObject;
+import com.anklav.diplom.algorithm.Norris;
+import com.anklav.diplom.dto.AnalisysDTO;
+import com.anklav.diplom.dto.ClassificationDTO;
 import com.anklav.diplom.dto.EditViewDTO;
 import com.anklav.diplom.dto.MailDTO;
 import com.anklav.diplom.entity.Mail;
+import com.anklav.diplom.enums.ChooseAlgorithm;
 import com.anklav.diplom.mapper.EditViewMapper;
 import com.anklav.diplom.mapper.MailMapper;
 import com.anklav.diplom.repository.MailRepository;
@@ -199,27 +203,29 @@ public class MailService {
         return mailFromDb;
     }
 
-    public void classification(List<String> ids) {
-        Map<Mail, String> classification = new ConcurrentHashMap<>();
-        TreeUtils treeUtils = new TreeUtils();
-
-        List<Mail> mailDTOList = getMailsByIds(ids);
+    public AnalisysDTO classification(ClassificationDTO dto) {
+        List<Mail> mailDTOList = getMailsByIds(dto.getId());
 
         List<Mail> class1 = new ArrayList<>();
         List<Mail> class2 = new ArrayList<>();
         int c1 = 0;
         int c2 = 0;
-        int classSize = 15;
+        int classSize;
+        if (dto.getMethod().equals(ChooseAlgorithm.NIAGARA.name())) {
+            classSize = 20;
+        } else {
+            classSize = 7;
+        }
 
-        for (int i = 0; i < mailDTOList.size(); i++) {
-            if (mailDTOList.get(i).getLabel().equals(FABLES)) {
+        for (Mail value : mailDTOList) {
+            if (value.getLabel().equals(FABLES)) {
                 if (c1 < classSize) {
-                    class1.add(mailDTOList.get(i));
+                    class1.add(value);
                     c1++;
                 }
             } else {
                 if (c2 < classSize) {
-                    class2.add(mailDTOList.get(i));
+                    class2.add(value);
                     c2++;
                 }
             }
@@ -228,49 +234,7 @@ public class MailService {
         mailDTOList.removeAll(class1);
         mailDTOList.removeAll(class2);
 
-//        List<Tree> treeDataSet;
-//
-//        treeDataSet = mailDTOList.stream()
-//                .map(x -> {
-//                    Annotation document =
-//                            new Annotation(x.getBody());
-//                    Properties props = new Properties();
-//                    props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse");
-//                    StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-//                    pipeline.annotate(document);
-//                    List<Tree> treeList = new ArrayList<>();
-//                    for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
-//                        Tree constituencyParse = sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
-//                        constituencyParse.pennPrint();
-//                        treeList.add(constituencyParse);
-//                    }
-//                    return Map.of(x.getId(), treeList);
-//                })
-//                .map(y -> {
-//                    Label label = new LabeledConstituent();
-//                    label.setFromString("ROOT");
-//                    final Tree[] tree = new Tree[1];
-//                    y.forEach((k, v) -> {
-//                        tree[0] = v.get(0);
-//                        for (int j = 1; j < v.size(); j++) {
-//                            int n = v.get(j).numChildren();
-//                            for (int l = 0; l < n; l++) {
-//                                tree[0].addChild(v.get(j).getChild(l));
-//                            }
-//                        }
-//                        Mail mail = getMailById(k.toString());
-//                        mail.setTree(tree[0].toString());
-//                        mailRepository.save(mail);
-//                    });
-//
-//                    return tree[0];
-//                })
-//        .collect(Collectors.toList());
-
-        fillTrees(ids);
-
-        List<NiagaraObject> niagaraObjectList1 = new ArrayList<>();
-        List<NiagaraObject> niagaraObjectList2 = new ArrayList<>();
+        fillTrees(dto.getId());
 
         ConcurrentHashMap<Set<String>, Tree> matrixOfClass1 = new ConcurrentHashMap<>();
         ConcurrentHashMap<Set<String>, Tree> matrixOfClass2 = new ConcurrentHashMap<>();
@@ -285,117 +249,17 @@ public class MailService {
                 matrixOfClass2.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
         }
 
-        for (int i = 0; i < class1.size(); i++) {
-            niagaraObjectList1.add(new NiagaraObject(Set.of(Long.toString(class1.get(i).getId())),
-                    Tree.valueOf(class1.get(i).getTree())));
+        Map<Mail, String> classification = new HashMap<>();
+        if (dto.getMethod().equals(ChooseAlgorithm.CB0.name())) {
+            classification = CbOClassification(class1, class2, matrixOfClass1,
+                    matrixOfClass2, mailDTOList);
+        } else if (dto.getMethod().equals(ChooseAlgorithm.NORRIS.name())) {
+            classification = NorrisClassification(class1, class2, matrixOfClass1,
+                    matrixOfClass2, mailDTOList);
+        } else if (dto.getMethod().equals(ChooseAlgorithm.NIAGARA.name())) {
+            classification = NiagaraClassification(class1, class2, matrixOfClass1,
+                    matrixOfClass2, mailDTOList);
         }
-
-        for (int i = 0; i < class2.size(); i++) {
-            niagaraObjectList2.add(new NiagaraObject(Set.of(Long.toString(class2.get(i).getId())),
-                    Tree.valueOf(class1.get(i).getTree())));
-        }
-
-        Niagara niagara = new Niagara();
-        Map<Set<String>, Tree> niagaraList = niagara.debut(niagaraObjectList1, niagaraObjectList2);
-
-        for (Mail mail : mailDTOList) {
-            niagaraList.forEach((key, value) -> {
-                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
-                    classification.put(mail, FABLES);
-                }
-            });
-
-            if (!classification.containsKey(mail)) {
-                classification.put(mail, COVID);
-            }
-        }
-        System.out.println("Classify END");
-
-        AtomicInteger tpN = new AtomicInteger();
-        AtomicInteger tnN = new AtomicInteger();
-        AtomicInteger fpN = new AtomicInteger();
-        AtomicInteger fnN = new AtomicInteger();
-
-        classification.forEach((k, v) -> {
-            if (k.getLabel().equals(v) && v.equals(FABLES)) {
-                tpN.getAndIncrement();
-            } else {
-                tnN.getAndIncrement();
-            }
-
-            if (k.getLabel().equals(v) && v.equals(COVID)) {
-                fpN.getAndIncrement();
-            } else {
-                fnN.getAndIncrement();
-            }
-        });
-
-        double precisionN = (double) tpN.get() / ((double) fpN.get() + (double) fpN.get());
-        double recallN = (double) tpN.get() / ((double) fpN.get() + (double) fnN.get());
-
-        double f1N = 2 * ((precisionN * recallN) / (precisionN + recallN));
-
-        System.out.println(f1N);
-
-        CloseByOne closeByOneC1 = new CloseByOne(matrixOfClass1, class1.size());
-        CloseByOne closeByOneC2 = new CloseByOne(matrixOfClass2, class2.size());
-        System.out.println("CbO1 START");
-        Map<Set<String>, Tree> resultCbO1 = closeByOneC1.recursiveCbO(matrixOfClass1);
-        System.out.println("CbO1 END");
-        System.out.println("CbO2 START");
-        Map<Set<String>, Tree> resultCbO2 = closeByOneC2.recursiveCbO(matrixOfClass2);
-        System.out.println("CbO2 END");
-
-        System.out.println("Classify START");
-//        for (Mail mail : mailDTOList) {
-//            resultCbO1.forEach((key, value) -> {
-//                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
-//                    classification.put(mail, FABLES);
-//                }
-//            });
-//
-//            if (!classification.containsKey(mail)) {
-//                classification.put(mail, COVID);
-//            }
-//        }
-//        System.out.println("Classify END");
-//
-//        AtomicInteger tp = new AtomicInteger();
-//        AtomicInteger tn = new AtomicInteger();
-//        AtomicInteger fp = new AtomicInteger();
-//        AtomicInteger fn = new AtomicInteger();
-//
-//        classification.forEach((k, v) -> {
-//            if (k.getLabel().equals(v) && v.equals(FABLES)) {
-//                tp.getAndIncrement();
-//            } else {
-//                tn.getAndIncrement();
-//            }
-//
-//            if (k.getLabel().equals(v) && v.equals(COVID)) {
-//                fp.getAndIncrement();
-//            } else {
-//                fn.getAndIncrement();
-//            }
-//        });
-//
-//        double precision = (double)tp.value / ((double)fp.value+(double)fp.value);
-//        double recall = (double)tp.value / ((double)fp.value+(double)fn.value);
-//
-//        double f1 = 2 * ((precision * recall) / (precision + recall));
-
-        for (Mail mail : mailDTOList) {
-            resultCbO1.forEach((key, value) -> {
-                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
-                    classification.put(mail, FABLES);
-                }
-            });
-
-            if (!classification.containsKey(mail)) {
-                classification.put(mail, COVID);
-            }
-        }
-        System.out.println("Classify END");
 
         AtomicInteger tp = new AtomicInteger();
         AtomicInteger tn = new AtomicInteger();
@@ -423,224 +287,9 @@ public class MailService {
 
         System.out.println(f1);
 
-        System.exit(0);
         System.out.println("===================================");
 
-        for (Mail mail : mailDTOList) {
-            resultCbO2.forEach((key, value) -> {
-                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
-                    classification.put(mail, COVID);
-                }
-            });
-
-            if (!classification.containsKey(mail)) {
-                classification.put(mail, FABLES);
-            }
-        }
-        System.out.println("Classify END");
-
-        AtomicInteger tp1 = new AtomicInteger();
-        AtomicInteger tn1 = new AtomicInteger();
-        AtomicInteger fp1 = new AtomicInteger();
-        AtomicInteger fn1 = new AtomicInteger();
-
-        classification.forEach((k, v) -> {
-            if (k.getLabel().equals(v) && v.equals(FABLES)) {
-                tp1.getAndIncrement();
-            } else {
-                tn1.getAndIncrement();
-            }
-
-            if (k.getLabel().equals(v) && v.equals(COVID)) {
-                fp1.getAndIncrement();
-            } else {
-                fn1.getAndIncrement();
-            }
-        });
-
-        precision = (double) tp1.get() / ((double) fp1.get() + (double) fp1.get());
-        recall = (double) tp1.get() / ((double) fp1.get() + (double) fn1.get());
-
-        f1 = 2 * ((precision * recall) / (precision + recall));
-
-        System.out.println(f1);
-
-        System.out.println("===================================");
-
-        for (Mail mail : mailDTOList) {
-            resultCbO1.forEach((key, value) -> {
-                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
-                    classification.put(mail, FABLES);
-                }
-            });
-
-            if (!classification.containsKey(mail)) {
-                classification.put(mail, COVID);
-            }
-        }
-        System.out.println("Classify END");
-
-        AtomicInteger tp2 = new AtomicInteger();
-        AtomicInteger tn2 = new AtomicInteger();
-        AtomicInteger fp2 = new AtomicInteger();
-        AtomicInteger fn2 = new AtomicInteger();
-
-        classification.forEach((k, v) -> {
-            if (k.getLabel().equals(v) && v.equals(FABLES)) {
-                tp2.getAndIncrement();
-            } else {
-                tn2.getAndIncrement();
-            }
-
-            if (k.getLabel().equals(v) && v.equals(COVID)) {
-                fp2.getAndIncrement();
-            } else {
-                fn2.getAndIncrement();
-            }
-        });
-
-        precision = (double) tp2.get() / ((double) fp2.get() + (double) fp2.get());
-        recall = (double) tp2.get() / ((double) fp2.get() + (double) fn2.get());
-
-        f1 = 2 * ((precision * recall) / (precision + recall));
-
-        System.out.println(f1);
-
-        System.out.println("===================================");
-
-        for (Mail mail : mailDTOList) {
-            resultCbO1.forEach((key, value) -> {
-                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
-                    classification.put(mail, COVID);
-                }
-            });
-
-            if (!classification.containsKey(mail)) {
-                classification.put(mail, FABLES);
-            }
-        }
-        System.out.println("Classify END");
-
-        AtomicInteger tp3 = new AtomicInteger();
-        AtomicInteger tn3 = new AtomicInteger();
-        AtomicInteger fp3 = new AtomicInteger();
-        AtomicInteger fn3 = new AtomicInteger();
-
-        classification.forEach((k, v) -> {
-            if (k.getLabel().equals(v) && v.equals(FABLES)) {
-                tp3.getAndIncrement();
-            } else {
-                tn3.getAndIncrement();
-            }
-
-            if (k.getLabel().equals(v) && v.equals(COVID)) {
-                fp3.getAndIncrement();
-            } else {
-                fn3.getAndIncrement();
-            }
-        });
-
-        precision = (double) tp3.get() / ((double) fp3.get() + (double) fp3.get());
-        recall = (double) tp3.get() / ((double) fp3.get() + (double) fn3.get());
-
-        f1 = 2 * ((precision * recall) / (precision + recall));
-
-        System.out.println(f1);
-
-        System.out.println("===================================");
-
-        for (Mail mail : mailDTOList) {
-            resultCbO1.forEach((key, value) -> {
-                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
-                    resultCbO1.forEach((key1, value1) -> {
-                        if (!TreeUtils.equalsTrees(value1, treeUtils.treesIntersection(value1, Tree.valueOf(mail.getTree())))) {
-                            classification.put(mail, FABLES);
-                        } else {
-                            if (value.depth() > value1.depth()) {
-                                classification.put(mail, FABLES);
-                            } else {
-                                classification.put(mail, COVID);
-                            }
-                        }
-                    });
-                }
-            });
-        }
-        System.out.println("Classify END");
-
-        AtomicInteger tp4 = new AtomicInteger();
-        AtomicInteger tn4 = new AtomicInteger();
-        AtomicInteger fp4 = new AtomicInteger();
-        AtomicInteger fn4 = new AtomicInteger();
-
-        classification.forEach((k, v) -> {
-            if (k.getLabel().equals(v) && v.equals(FABLES)) {
-                tp4.getAndIncrement();
-            } else {
-                tn4.getAndIncrement();
-            }
-
-            if (k.getLabel().equals(v) && v.equals(COVID)) {
-                fp4.getAndIncrement();
-            } else {
-                fn4.getAndIncrement();
-            }
-        });
-
-        precision = (double) tp4.get() / ((double) fp4.get() + (double) fp4.get());
-        recall = (double) tp4.get() / ((double) fp4.get() + (double) fn4.get());
-
-        f1 = 2 * ((precision * recall) / (precision + recall));
-
-        System.out.println(f1);
-
-        System.out.println("===================================");
-
-        for (Mail mail : mailDTOList) {
-            resultCbO1.forEach((key, value) -> {
-                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
-                    resultCbO1.forEach((key1, value1) -> {
-                        if (!TreeUtils.equalsTrees(value1, treeUtils.treesIntersection(value1, Tree.valueOf(mail.getTree())))) {
-                            classification.put(mail, COVID);
-                        } else {
-                            if (value.depth() > value1.depth()) {
-                                classification.put(mail, COVID);
-                            } else {
-                                classification.put(mail, FABLES);
-                            }
-                        }
-                    });
-                }
-            });
-        }
-        System.out.println("Classify END");
-
-        AtomicInteger tp5 = new AtomicInteger();
-        AtomicInteger tn5 = new AtomicInteger();
-        AtomicInteger fp5 = new AtomicInteger();
-        AtomicInteger fn5 = new AtomicInteger();
-
-        classification.forEach((k, v) -> {
-            if (k.getLabel().equals(v) && v.equals(FABLES)) {
-                tp5.getAndIncrement();
-            } else {
-                tn5.getAndIncrement();
-            }
-
-            if (k.getLabel().equals(v) && v.equals(COVID)) {
-                fp5.getAndIncrement();
-            } else {
-                fn5.getAndIncrement();
-            }
-        });
-
-        precision = (double) tp5.get() / ((double) fp5.get() + (double) fp5.get());
-        recall = (double) tp5.get() / ((double) fp5.get() + (double) fn5.get());
-
-        f1 = 2 * ((precision * recall) / (precision + recall));
-
-        System.out.println(f1);
-        System.out.println();
+        return new AnalisysDTO(precision, recall, f1);
     }
 
     private void fillTrees(List<String> ids) {
@@ -686,5 +335,123 @@ public class MailService {
                     return tree[0];
                 })
                 .collect(Collectors.toList());
+    }
+
+    private Map<Mail, String> CbOClassification(List<Mail> class1,
+                                                List<Mail> class2,
+                                                ConcurrentHashMap<Set<String>, Tree> matrixOfClass1,
+                                                ConcurrentHashMap<Set<String>, Tree> matrixOfClass2,
+                                                List<Mail> mailDTOList) {
+        TreeUtils treeUtils = new TreeUtils();
+        Map<Mail, String> classification = new ConcurrentHashMap<>();
+
+        CloseByOne closeByOneC1 = new CloseByOne(matrixOfClass1, class1.size());
+        CloseByOne closeByOneC2 = new CloseByOne(matrixOfClass2, class2.size());
+        System.out.println("CbO1 START");
+        Map<Set<String>, Tree> resultCbO1 = closeByOneC1.recursiveCbO(matrixOfClass1);
+        System.out.println("CbO1 END");
+        System.out.println("CbO2 START");
+//        Map<Set<String>, Tree> resultCbO2 = closeByOneC2.recursiveCbO(matrixOfClass2);
+        System.out.println("CbO2 END");
+
+        System.out.println("Classify START");
+        for (Mail mail : mailDTOList) {
+            resultCbO1.forEach((key, value) -> {
+                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
+                    classification.put(mail, FABLES);
+                }
+            });
+
+            if (!classification.containsKey(mail)) {
+                classification.put(mail, COVID);
+            }
+        }
+        System.out.println("Classify END");
+
+        return classification;
+    }
+
+    private Map<Mail, String> NorrisClassification(List<Mail> class1,
+                                                   List<Mail> class2,
+                                                   ConcurrentHashMap<Set<String>, Tree> matrixOfClass1,
+                                                   ConcurrentHashMap<Set<String>, Tree> matrixOfClass2,
+                                                   List<Mail> mailDTOList) {
+        TreeUtils treeUtils = new TreeUtils();
+        Map<Mail, String> classification = new ConcurrentHashMap<>();
+
+        Norris norris1 = new Norris();
+        Norris norris2 = new Norris();
+        System.out.println("Norris START");
+        Map<Set<String>, Tree> resultNorris1 = norris1.getNorris(matrixOfClass1);
+        System.out.println("Norris END");
+        System.out.println("Norris START");
+//        Map<Set<String>, Tree> resultNorris2 = norris2.getNorris(matrixOfClass2);
+        System.out.println("Norris END");
+
+        System.out.println("Classify START");
+        for (Mail mail : mailDTOList) {
+            resultNorris1.forEach((key, value) -> {
+                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
+                    classification.put(mail, FABLES);
+                }
+            });
+
+            if (!classification.containsKey(mail)) {
+                classification.put(mail, COVID);
+            }
+        }
+        System.out.println("Classify END");
+
+        return classification;
+    }
+
+    private Map<Mail, String> NiagaraClassification(List<Mail> class1,
+                                                    List<Mail> class2,
+                                                    ConcurrentHashMap<Set<String>, Tree> matrixOfClass1,
+                                                    ConcurrentHashMap<Set<String>, Tree> matrixOfClass2,
+                                                    List<Mail> mailDTOList) {
+        System.out.println("Niagara start");
+        TreeUtils treeUtils = new TreeUtils();
+        Map<Mail, String> classification = new ConcurrentHashMap<>();
+        List<NiagaraObject> niagaraObjectList1 = new ArrayList<>();
+        List<NiagaraObject> niagaraObjectList2 = new ArrayList<>();
+
+        for (Mail mail : class1) {
+            if (Tree.valueOf(mail.getTree()) != null)
+                matrixOfClass1.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
+        }
+
+        for (Mail mail : class2) {
+            if (Tree.valueOf(mail.getTree()) != null)
+                matrixOfClass2.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
+        }
+
+        for (Mail item : class1) {
+            niagaraObjectList1.add(new NiagaraObject(Set.of(Long.toString(item.getId())),
+                    Tree.valueOf(item.getTree())));
+        }
+
+        for (Mail item : class2) {
+            niagaraObjectList2.add(new NiagaraObject(Set.of(Long.toString(item.getId())),
+                    Tree.valueOf(item.getTree())));
+        }
+
+        Niagara niagara = new Niagara();
+        Map<Set<String>, Tree> niagaraList = niagara.startNiagara(niagaraObjectList1, niagaraObjectList2);
+
+        for (Mail mail : mailDTOList) {
+            niagaraList.forEach((key, value) -> {
+                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
+                    classification.put(mail, FABLES);
+                }
+            });
+
+            if (!classification.containsKey(mail)) {
+                classification.put(mail, COVID);
+            }
+        }
+        System.out.println("Classify END");
+
+        return classification;
     }
 }

@@ -1,15 +1,10 @@
 package com.anklav.diplom.controller;
 
-import com.anklav.diplom.dto.ClassificationDTO;
-import com.anklav.diplom.dto.EditViewDTO;
-import com.anklav.diplom.dto.SimilarityDTO;
-import com.anklav.diplom.dto.TableViewDTO;
+import com.anklav.diplom.dto.*;
 import com.anklav.diplom.entity.Mail;
 import com.anklav.diplom.mapper.TableViewMapper;
 import com.anklav.diplom.repository.MailRepository;
 import com.anklav.diplom.service.MailService;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -19,9 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,8 +52,10 @@ public class MailController {
     }
 
     @PostMapping("import")
-    public void importDataJson() throws IOException {
-
+    public void importDataJson(@RequestBody List<Mail> mails) {
+        for (Mail mail : mails) {
+            mailService.createMessage(mailRepository.save(mail));
+        }
     }
 
     @GetMapping("export")
@@ -81,9 +75,8 @@ public class MailController {
     }
 
     @PostMapping("classification")
-    public void classification(@RequestBody ClassificationDTO dto) throws Exception {
-        mailService.classification(dto.getId());
-        System.out.println();
+    public AnalisysDTO classification(@RequestBody ClassificationDTO dto) throws Exception {
+        return mailService.classification(dto);
     }
 
     @PostMapping("similarity")
