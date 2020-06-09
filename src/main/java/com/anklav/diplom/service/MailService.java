@@ -4,10 +4,7 @@ import com.anklav.diplom.algorithm.CloseByOne;
 import com.anklav.diplom.algorithm.Niagara;
 import com.anklav.diplom.algorithm.NiagaraObject;
 import com.anklav.diplom.algorithm.Norris;
-import com.anklav.diplom.dto.AnalisysDTO;
-import com.anklav.diplom.dto.ClassificationDTO;
-import com.anklav.diplom.dto.EditViewDTO;
-import com.anklav.diplom.dto.MailDTO;
+import com.anklav.diplom.dto.*;
 import com.anklav.diplom.entity.Mail;
 import com.anklav.diplom.enums.ChooseAlgorithm;
 import com.anklav.diplom.mapper.EditViewMapper;
@@ -205,6 +202,7 @@ public class MailService {
 
     public AnalisysDTO classification(ClassificationDTO dto) {
         List<Mail> mailDTOList = getMailsByIds(dto.getId());
+        Map<Set<String>, Tree> semiLattice = null;
 
         List<Mail> class1 = new ArrayList<>();
         List<Mail> class2 = new ArrayList<>();
@@ -252,8 +250,8 @@ public class MailService {
 
         Map<Mail, String> classification = new HashMap<>();
         if (dto.getMethod().equals(ChooseAlgorithm.CB0.name())) {
-            classification = CbOClassification(class1, class2, matrixOfClass1,
-                    matrixOfClass2, mailDTOList);
+            semiLattice = getCbOSemiLattice(class1, matrixOfClass1);
+            classification = CbOClassification(semiLattice, mailDTOList);
         } else if (dto.getMethod().equals(ChooseAlgorithm.NORRIS.name())) {
             classification = NorrisClassification(class1, class2, matrixOfClass1,
                     matrixOfClass2, mailDTOList);
@@ -290,7 +288,15 @@ public class MailService {
 
         System.out.println("===================================");
 
-        return new AnalisysDTO(precision, recall, f1);
+        List<SemiLatticeViewDTO> semiLatticeViewDTOS = new ArrayList<>();
+        AtomicInteger cnt = new AtomicInteger();
+        assert semiLattice != null; //TODO: ?
+        semiLattice.forEach((k, v) -> {
+            cnt.getAndIncrement();
+            semiLatticeViewDTOS.add(new SemiLatticeViewDTO("Объект " + cnt.get(), k, v.toString()));
+        });
+
+        return new AnalisysDTO(precision, recall, f1, semiLatticeViewDTOS);
     }
 
     private void fillTrees(List<String> ids) {
@@ -338,19 +344,23 @@ public class MailService {
                 .collect(Collectors.toList());
     }
 
-    private Map<Mail, String> CbOClassification(List<Mail> class1,
-                                                List<Mail> class2,
-                                                ConcurrentHashMap<Set<String>, Tree> matrixOfClass1,
-                                                ConcurrentHashMap<Set<String>, Tree> matrixOfClass2,
+    private Map<Set<String>, Tree> getCbOSemiLattice(
+            List<Mail> class1, ConcurrentHashMap<Set<String>,
+            Tree> matrixOfClass1) {
+        CloseByOne closeByOneC1 = new CloseByOne(matrixOfClass1, class1.size());
+        Map<Set<String>, Tree> resultCbO1 = closeByOneC1.recursiveCbO(matrixOfClass1);
+
+        return resultCbO1;
+    }
+
+    private Map<Mail, String> CbOClassification(Map<Set<String>, Tree> resultCbO1,
                                                 List<Mail> mailDTOList) {
         TreeUtils treeUtils = new TreeUtils();
         Map<Mail, String> classification = new ConcurrentHashMap<>();
 
-        CloseByOne closeByOneC1 = new CloseByOne(matrixOfClass1, class1.size());
 //        CloseByOne closeByOneC2 = new CloseByOne(matrixOfClass2, class2.size());
         System.out.println("CbO1 START");
         long l = System.currentTimeMillis();
-        Map<Set<String>, Tree> resultCbO1 = closeByOneC1.recursiveCbO(matrixOfClass1);
         System.out.println("CbO CbOEnd" + (double) (System.currentTimeMillis() - l));
         System.out.println("CbO1 END");
         System.out.println("CbO2 START");
