@@ -29,8 +29,8 @@ export const Mail = {
     date: new Date(model.date),
   }),
 
-  classification: (id: Id[], method: string) =>
-    fetcher<ClassificationResult>("/mail/classification", "POST", { id, method }),
+  classification: (id: Id[], method: string, trainPercent: number) =>
+    fetcher<ClassificationResult>("/mail/classification", "POST", { id, method, trainPercent }),
   similarity: (id: Id, method: string, topN: number) =>
     fetcher<SimilarityResult>("/mail/similarity", "POST", { id, method, topN }),
   importData: (data: MailEditItem[]) =>

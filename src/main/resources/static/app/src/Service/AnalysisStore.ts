@@ -40,10 +40,10 @@ export default class AnalysisStore {
     console.log(this.openedSettings);
   };
   @action
-  selectClassificationAlgorithm = async (algorithmCode: string) => {
+  selectClassificationAlgorithm = async (algorithmCode: string, trainPercent: number) => {
     this.stage = "FETCHING";
     try {
-      const data = await Mail.classification(this.getSelectedIds(), algorithmCode);
+      const data = await Mail.classification(this.getSelectedIds(), algorithmCode, trainPercent);
       runInAction(() => {
         this.result = JSON.stringify(data.data, null, "\t");
         this.notifySuccess();
