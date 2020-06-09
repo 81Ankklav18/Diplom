@@ -5,13 +5,10 @@ import com.anklav.diplom.entity.Mail;
 import com.anklav.diplom.mapper.TableViewMapper;
 import com.anklav.diplom.repository.MailRepository;
 import com.anklav.diplom.service.MailService;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;

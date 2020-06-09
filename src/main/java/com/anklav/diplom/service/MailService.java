@@ -211,11 +211,11 @@ public class MailService {
         int c1 = 0;
         int c2 = 0;
         int classSize;
-        if (dto.getMethod().equals(ChooseAlgorithm.NIAGARA.name())) {
-            classSize = 20;
-        } else {
-            classSize = 7;
-        }
+//        if (dto.getMethod().equals(ChooseAlgorithm.NIAGARA.name())) {
+//            classSize = 20;
+//        } else {
+        classSize = 7;
+//        }
 
         for (Mail value : mailDTOList) {
             if (value.getLabel().equals(FABLES)) {
@@ -223,12 +223,13 @@ public class MailService {
                     class1.add(value);
                     c1++;
                 }
-            } else {
-                if (c2 < classSize) {
-                    class2.add(value);
-                    c2++;
-                }
             }
+//            else {
+//                if (c2 < classSize) {
+//                    class2.add(value);
+//                    c2++;
+//                }
+//            }
         }
 
         mailDTOList.removeAll(class1);
@@ -244,10 +245,10 @@ public class MailService {
                 matrixOfClass1.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
         }
 
-        for (Mail mail : class2) {
-            if (Tree.valueOf(mail.getTree()) != null)
-                matrixOfClass2.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
-        }
+//        for (Mail mail : class2) {
+//            if (Tree.valueOf(mail.getTree()) != null)
+//                matrixOfClass2.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
+//        }
 
         Map<Mail, String> classification = new HashMap<>();
         if (dto.getMethod().equals(ChooseAlgorithm.CB0.name())) {
@@ -346,26 +347,32 @@ public class MailService {
         Map<Mail, String> classification = new ConcurrentHashMap<>();
 
         CloseByOne closeByOneC1 = new CloseByOne(matrixOfClass1, class1.size());
-        CloseByOne closeByOneC2 = new CloseByOne(matrixOfClass2, class2.size());
+//        CloseByOne closeByOneC2 = new CloseByOne(matrixOfClass2, class2.size());
         System.out.println("CbO1 START");
+        long l = System.currentTimeMillis();
         Map<Set<String>, Tree> resultCbO1 = closeByOneC1.recursiveCbO(matrixOfClass1);
+        System.out.println("CbO CbOEnd" + (double) (System.currentTimeMillis() - l));
         System.out.println("CbO1 END");
         System.out.println("CbO2 START");
 //        Map<Set<String>, Tree> resultCbO2 = closeByOneC2.recursiveCbO(matrixOfClass2);
         System.out.println("CbO2 END");
 
         System.out.println("Classify START");
+        l = System.currentTimeMillis();
         for (Mail mail : mailDTOList) {
             resultCbO1.forEach((key, value) -> {
                 if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
                     classification.put(mail, FABLES);
+//                    System.out.println(mail.toString() + " " + FABLES);
                 }
             });
 
             if (!classification.containsKey(mail)) {
                 classification.put(mail, COVID);
+//                System.out.println(mail.toString() + " " + COVID);
             }
         }
+        System.out.println("CbO classEnd" + (double) (System.currentTimeMillis() - l));
         System.out.println("Classify END");
 
         return classification;
@@ -380,27 +387,33 @@ public class MailService {
         Map<Mail, String> classification = new ConcurrentHashMap<>();
 
         Norris norris1 = new Norris();
-        Norris norris2 = new Norris();
+//        Norris norris2 = new Norris();
         System.out.println("Norris START");
+        long l = System.currentTimeMillis();
         Map<Set<String>, Tree> resultNorris1 = norris1.getNorris(matrixOfClass1);
+        System.out.println("Norr NorrEnd" + (double) (System.currentTimeMillis() - l));
         System.out.println("Norris END");
         System.out.println("Norris START");
 //        Map<Set<String>, Tree> resultNorris2 = norris2.getNorris(matrixOfClass2);
         System.out.println("Norris END");
 
         System.out.println("Classify START");
+        l = System.currentTimeMillis();
         for (Mail mail : mailDTOList) {
             resultNorris1.forEach((key, value) -> {
                 if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
                     classification.put(mail, FABLES);
+//                    System.out.println(mail.toString() + " " + FABLES);
                 }
             });
 
             if (!classification.containsKey(mail)) {
                 classification.put(mail, COVID);
+//                System.out.println(mail.toString() + " " + COVID);
             }
         }
         System.out.println("Classify END");
+        System.out.println("Norr classEnd" + (double) (System.currentTimeMillis() - l));
 
         return classification;
     }
@@ -421,24 +434,27 @@ public class MailService {
                 matrixOfClass1.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
         }
 
-        for (Mail mail : class2) {
-            if (Tree.valueOf(mail.getTree()) != null)
-                matrixOfClass2.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
-        }
+//        for (Mail mail : class2) {
+//            if (Tree.valueOf(mail.getTree()) != null)
+//                matrixOfClass2.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
+//        }
 
         for (Mail item : class1) {
             niagaraObjectList1.add(new NiagaraObject(Set.of(Long.toString(item.getId())),
                     Tree.valueOf(item.getTree())));
         }
 
-        for (Mail item : class2) {
-            niagaraObjectList2.add(new NiagaraObject(Set.of(Long.toString(item.getId())),
-                    Tree.valueOf(item.getTree())));
-        }
+//        for (Mail item : class2) {
+//            niagaraObjectList2.add(new NiagaraObject(Set.of(Long.toString(item.getId())),
+//                    Tree.valueOf(item.getTree())));
+//        }
 
         Niagara niagara = new Niagara();
+        long l = System.currentTimeMillis();
         Map<Set<String>, Tree> niagaraList = niagara.startNiagara(niagaraObjectList1, niagaraObjectList2);
+        System.out.println("Nia NiaEnd" + (double) (System.currentTimeMillis() - l));
 
+        l = System.currentTimeMillis();
         for (Mail mail : mailDTOList) {
             niagaraList.forEach((key, value) -> {
                 if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
@@ -450,6 +466,7 @@ public class MailService {
                 classification.put(mail, COVID);
             }
         }
+        System.out.println("Nia classEnd" + (double) (System.currentTimeMillis() - l));
         System.out.println("Classify END");
 
         return classification;

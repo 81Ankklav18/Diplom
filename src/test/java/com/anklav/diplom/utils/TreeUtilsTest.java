@@ -1,21 +1,27 @@
 package com.anklav.diplom.utils;
 
+import edu.stanford.nlp.trees.Tree;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TreeUtilsTest {
+    private Tree tree;
+    private Tree tree1;
+    private TreeUtils treeUtils = new TreeUtils();
 
     @BeforeEach
     void setUp() {
+        tree = Tree.valueOf("(ROOT (S (NP (NNP Russia)) (VP (VBD confirmed) (NP (CD 954) (JJ new) (NN coronavirus) (NNS infections)) (, ,) (S (VP (VP (VBG bringing) (NP (NP (DT the) (JJ official) (NN number)) (PP (IN of) (NP (NNS cases)))) (PP (TO to) (NP (CD 6,343)))) (CC and) (VP (VBG marking) (NP (DT a) (JJ new) (NN record) (JJ one-day) (NN increase)))))) (. .)) (S (NP (NNP Russia)) (VP (MD will) (VP (VB send) (NP (QP ($ $) (CD 1) (CD million))) (PP (TO to) (NP (DT the) (NNP World) (NNP Health) (NNP Organization))) (S (VP (TO to) (VP (VB help) (PP (IN in) (NP (NP (DT the) (NN fight)) (PP (IN against) (NP (NN coronavirus))))) (, ,) (PP (VBG according) (PP (TO to) (NP (NP (DT a) (NN decree)) (VP (VBN signed) (PP (IN by) (NP (NNP Prime) (NNP Minister) (NNP Mikhail) (NNP Mishustin)))))))))))) (. .)) (S (NP (NP (CD Three) (JJ Russian) (NNP Orthodox) (NNS priests)) (PP (IN in) (NP (NNP Moscow)))) (VP (VBP have) (VP (VBN been) (VP (VBN hospitalized) (PP (IN with) (NP (NP (NN coronavirus)) (, ,) (NP (NP (DT the) (JJ state-run) (NN RIA) (NNS Novosti) (NN news) (NN agency)) (VP (VBD reported)))))))) (. .)) (S (S (NP (CD Two) (JJ other) (NNS priests)) (VP (VBP are) (VP (VBG showing) (NP (NP (NNS symptoms)) (PP (IN of) (NP (DT the) (NN virus))))))) (CC but) (S (NP (PRP$ their) (NN diagnosis)) (VP (VBZ has) (RB n't) (VP (VBN been) (VP (VBN confirmed))))) (. .)) (S (S (NP (PRP It)) (VP (VBZ is) (ADJP (`` ``) (JJ unacceptable) ('' '') (PP (IN for) (NP (NP (NNP Russia) (POS 's)) (NNS regions)))) (S (VP (TO to) (VP (VB close) (NP (PRP$ their) (NNS borders)) (PP (IN with) (NP (NP (JJ other) (NNS regions)) (PP (IN of) (NP (DT the) (NN country)))))))))) (, ,) (NP (NNP Mishustin)) (VP (VBD said) (PP (IN at) (NP (NP (DT a) (NN meeting)) (PP (IN with) (NP (JJ regional) (NNS envoys))))) (SBAR (IN after) (S (NP (NP (DT the) (NN republic)) (PP (IN of) (NP (NNP Chechnya)))) (VP (VBD sealed) (PRT (RP off)) (NP (PRP$ its) (NNS borders)))))) (. .)) (S (NP (DT The) (NNP Kremlin)) (ADVP (RB also)) (VP (VBD called) (S (NP (JJ such) (NNS measures)) (`` ``) (ADJP (JJ excessive)) ('' ''))) (. .)) (S (NP (NP (NNP Russia) (POS 's)) (NN health) (NN watchdog) (NNP Rosdravnadzor)) (VP (VBZ has) (VP (VBN developed) (NP (NP (DT an) (`` ``) (S (VP (VB express))) ('' '') (NN coronavirus)) (SBAR (S (NP (NP (NN test)) (SBAR (WHNP (WDT that)) (S (VP (MD can) (VP (VB test) (PP (IN at) (NP (NP (CD 94) (NN %) (NN accuracy)) (PP (IN within) (NP (NP (CD 40) (NNS minutes)) (, ,) (NP (DT the) (NN Industry)) (CC and) (NP (NNP Trade) (NNP Ministry))))))))))) (VP (VBD said))))))) (. .)) (S (NP (NP (NP (CD Three) (NNS regions)) (PP (IN of) (NP (NNP Russia)))) (PRN (: --) (NP (NP (DT the) (NNP Irkutsk) (NN region)) (, ,) (NP (NNP Tomsk) (NN region)) (CC and) (NP (NNP Krasnoyarsk) (NN region))) (: --))) (VP (VBP have) (VP (VBN begun) (S (VP (VBG ordering) (NP (NP (DT all) (NNS people)) (VP (VBG arriving) (PP (IN from) (NP (NNP Moscow) (CC and) (NNP St.) (NNP Petersburg))) (S (VP (TO to) (VP (VB self-isolate) (PP (IN for) (NP (NP (CD two) (NNS weeks)) (PP (IN in) (NP (DT a) (NN move))))) (S (VP (TO to) (VP (VB prevent) (NP (NP (DT the) (NN spread)) (PP (IN of) (NP (NN coronavirus)))))))))))))))) (. .)))");
+        tree1 = Tree.valueOf("(ROOT (S (NP (NP (DT A) (NN Dog)) (, ,) (SBAR (WHPP (TO to) (WHNP (WP whom))) (S (NP (DT the) (NN butcher)) (VP (VBD had) (VP (VBN thrown) (NP (DT a) (NN bone)))))) (, ,)) (VP (VBD was) (VP (VBG hurrying) (ADVP (NN home)) (PP (IN with) (NP (PRP$ his) (NN prize))) (PP (IN as) (ADJP (JJ fast))) (SBAR (IN as) (S (NP (PRP he)) (VP (MD could) (VP (VB go))))))) (. .)) (S (SBAR (IN As) (S (NP (PRP he)) (VP (VBD crossed) (NP (DT a) (JJ narrow) (NN footbridge))))) (, ,) (NP (PRP he)) (VP (VP (VBD happened) (S (VP (TO to) (VP (VB look) (ADVP (RB down)))))) (CC and) (VP (VBD saw) (SBAR (S (NP (PRP himself)) (VP (VBD reflected) (PP (PP (IN in) (NP (DT the) (JJ quiet) (NN water))) (CONJP (IN as) (IN if)) (PP (IN in) (NP (DT a) (NN mirror))))))))) (. .)) (S (CC But) (NP (DT the) (JJ greedy) (NN Dog)) (VP (VBD thought) (SBAR (S (NP (PRP he)) (VP (VBD saw) (NP (DT a) (JJ real) (NN Dog)) (S (VP (VBG carrying) (NP (NP (DT a) (NN bone)) (ADJP (RB much) (JJR bigger))) (PP (IN than) (NP (PRP$ his) (JJ own))))))))) (. .)) (S (SBAR (IN If) (S (NP (PRP he)) (VP (VBD had) (VP (VBN stopped) (S (VP (TO to) (VP (VB think)))))))) (NP (PRP he)) (VP (MD would) (VP (VB have) (VP (VBN known) (ADVP (RBR better))))) (. .)) (S (CC But) (PP (RB instead) (IN of) (NP (NN thinking))) (, ,) (NP (PRP he)) (VP (VP (VBD dropped) (NP (PRP$ his) (NN bone))) (CC and) (VP (VBD sprang) (PP (IN at) (NP (NP (DT the) (NN Dog)) (PP (IN in) (NP (DT the) (NN river))))) (, ,) (ADVP (RB only)) (S (VP (TO to) (VP (VB find) (S (NP (PRP himself)) (VP (VBG swimming) (PP (IN for) (NP (ADJP (RB dear)) (NN life))) (S (VP (TO to) (VP (VB reach) (NP (DT the) (NN shore)))))))))))) (. .)) (S (S (PP (IN At) (NP (JJ last))) (NP (PRP he)) (VP (VBD managed) (S (VP (TO to) (VP (VB scramble) (PRT (RP out))))))) (, ,) (CC and) (S (SBAR (IN as) (S (NP (PRP he)) (VP (VBD stood) (S (ADVP (RB sadly)) (VP (VBG thinking) (PP (IN about) (NP (NP (DT the) (JJ good) (NN bone)) (SBAR (S (NP (PRP he)) (VP (VBD had) (VP (VBN lost)))))))))))) (, ,) (NP (PRP he)) (VP (VBD realized) (X (X (WP what)) (NP (NP (DT a) (JJ stupid) (NN Dog)) (SBAR (S (NP (PRP he)) (VP (VBD had) (VP (VBN been))))))))) (. .)) (S (NP (PRP It)) (VP (VBZ is) (ADJP (RB very) (JJ foolish)) (S (VP (TO to) (VP (VB be) (ADJP (JJ greedy)))))) (. .)))");
     }
 
     @Test
-    void treesIntersection() {
-    }
-
-    @Test
-    void equalsTrees() {
+    void treeTest() {
+        assertTrue(TreeUtils.equalsTrees(tree, tree));
+        assertFalse(TreeUtils.equalsTrees(tree, tree1));
+        assertTrue(TreeUtils.equalsTrees(tree, treeUtils.treesIntersection(tree, tree)));
+        assertFalse(TreeUtils.equalsTrees(tree, treeUtils.treesIntersection(tree1, tree)));
     }
 }

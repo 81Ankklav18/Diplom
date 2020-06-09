@@ -11,7 +11,8 @@ public class DiplomApplication {
 	//TODO: классификация: на вход: {ids}, {nameOfAlgo}. На выход: pre, rec, f1
 	//TODO: similarity: на вход: get{id}. На выход: top-N Edit'oв
 	//TODO: Также в Edit'ы подавать дерево
-	//TODO:
+	//TODO: разделить алгоритмы построения и классификации
+	//TODO: возвращать Сет<Стринг>, Трии
 	public static void main(String[] args) {
 		SpringApplication.run(DiplomApplication.class, args);
 	}
