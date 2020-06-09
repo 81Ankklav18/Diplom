@@ -6,7 +6,6 @@ import AnalysisStore from "./AnalysisStore";
 export default class MailStore {
   @observable selectedIds: Id[] = [];
   @computed get isSimilarityDisabled() {
-    console.log(this.selectedIds.length)
     return this.selectedIds.length !== 1;
   }
   @observable notification: Notification | null = null;
