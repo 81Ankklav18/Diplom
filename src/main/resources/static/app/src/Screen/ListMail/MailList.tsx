@@ -11,7 +11,7 @@ const MailList: FC = observer(() => {
       selected={store.selectedIds}
       toggleSelectAll={store.toggleSelectAll}
       selectItem={store.selectItem}
-      editItem={store.editMail}
+      editItem={store.mailEditStore.editMail}
       removeSelected={store.removeSelected}
     />
   );

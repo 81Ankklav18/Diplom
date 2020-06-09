@@ -16,7 +16,7 @@ import {
   Input,
   makeStyles,
 } from "@material-ui/core";
-import { algorithms } from "../../../Service/AnalysisStore";
+import { algorithms } from "../../../Service/ClassificationAnalysis";
 
 interface Props {
   onSelect: (algorithmCode: string, trainPercent: number) => void;
@@ -49,17 +49,17 @@ const ClassificationSettings: FC<Props> = ({
     onSelect(value, trainPercent);
   }, [onSelect, value, trainPercent]);
   const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValue((event.target as HTMLInputElement).value);
-    },
+    (event: React.ChangeEvent<HTMLInputElement>) =>
+      setValue(event.target.value),
     []
   );
   const handleTrainChange = useCallback(
-    (event: React.ChangeEvent<{}>, value: number | number[]) => setTrainPercent(+value),
+    (_, value: number | number[]) => setTrainPercent(+value),
     []
   );
   const handleTrainInputChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => setTrainPercent(+event.target.value),
+    (event: React.ChangeEvent<HTMLInputElement>) =>
+      setTrainPercent(+event.target.value),
     []
   );
 
@@ -105,9 +105,7 @@ const ClassificationSettings: FC<Props> = ({
             {radioItems}
           </RadioGroup>
         </FormControl>
-        <Typography gutterBottom>
-          Процент обучающей выборки
-        </Typography>
+        <Typography gutterBottom>Процент обучающей выборки</Typography>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs>
             <Slider

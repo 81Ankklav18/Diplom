@@ -1,7 +1,10 @@
 import { observable, computed, action, runInAction } from "mobx";
-import { MailListItem, MailEditItem, Id, Notification } from "./types";
+import { MailListItem, Id, Notification } from "./types";
 import { Mail } from "./queries";
-import AnalysisStore from "./AnalysisStore";
+import SimilarityStore from "./SimilarityAnalysis";
+import ClassificationStore from "./ClassificationAnalysis";
+import ImpExpService from "./ImpExpService";
+import MailEditService from "./MailEditService";
 
 export default class MailStore {
   @observable selectedIds: Id[] = [];
@@ -23,34 +26,7 @@ export default class MailStore {
       message: "Операция выполнена",
       type: "success",
     });
-
-  @action
-  getSelectedIds = () => this.selectedIds;
-  analysisStore = new AnalysisStore(
-    this.getSelectedIds,
-    this.notifySuccess,
-    this.notifyError
-  );
-
   @observable rows: MailListItem[] = [];
-  @observable editedMail: MailEditItem | null = null;
-  @action
-  reloadTable = async () => {
-    try {
-      const data = await Mail.getAll();
-      runInAction(() => {
-        this.rows = data.data;
-        const set = new Set(data.data.map((e) => e.id));
-        this.selectedIds = this.selectedIds.filter((e) => set.has(e));
-        this.notifySuccess();
-      });
-    } catch (error) {
-      runInAction(() => {
-        this.notifyError();
-        this.rows = [];
-      });
-    }
-  };
   @action
   toggleSelectAll = (isAll: boolean) =>
     (this.selectedIds = isAll ? this.rows.map((n) => n.id) : []);
@@ -73,84 +49,57 @@ export default class MailStore {
     this.selectedIds = newSelected;
   };
   @action
+  reloadTable = async () => {
+    try {
+      const data = await Mail.getAll();
+      runInAction(() => {
+        this.rows = data.data;
+        const set = new Set(data.data.map((e) => e.id));
+        this.selectedIds = this.selectedIds.filter((e) => set.has(e));
+        this.notifySuccess();
+      });
+    } catch (error) {
+      runInAction(() => {
+        this.notifyError();
+        this.rows = [];
+      });
+    }
+  };
+
+  @action
+  getSelectedIds = () => this.selectedIds;
+  classificationStore = new ClassificationStore(
+    this.getSelectedIds,
+    this.notifySuccess,
+    this.notifyError
+  );
+  similarityStore = new SimilarityStore(
+    this.getSelectedIds,
+    this.notifySuccess,
+    this.notifyError
+  );
+  impExpStore = new ImpExpService(
+    this.notifySuccess,
+    this.notifyError,
+    this.reloadTable
+  );
+  mailEditStore = new MailEditService(
+    this.notifySuccess,
+    this.notifyError,
+    this.reloadTable
+  );
+
+  @action
   removeSelected = async () => {
     try {
       await Mail.remove(this.selectedIds);
       runInAction(() => {
         this.notifySuccess();
-        this.editedMail = null;
+        this.mailEditStore.editedMail = null;
       });
     } catch (error) {
       runInAction(this.notifyError);
     }
     await this.reloadTable();
-  };
-
-  @computed get isNew() {
-    return this.editedMail !== null && this.editedMail.id === null;
-  }
-  @action
-  createMail = () =>
-    (this.editedMail = {
-      id: null,
-      subject: "",
-      body: "",
-      date: new Date(),
-      deliveredTo: "",
-      envelopeFrom: "",
-      label: "",
-    });
-  @action
-  editMail = async (id: Id) => {
-    try {
-      const data = await Mail.getItem(id);
-      runInAction(() => {
-        this.editedMail = Mail.toModel(data.data);
-        this.notifySuccess();
-      });
-    } catch (error) {
-      runInAction(this.notifyError);
-    }
-    await this.reloadTable();
-  };
-  @action
-  saveEditedMail = async (item: MailEditItem) => {
-    if (this.editedMail === null) return;
-    const dto = Mail.toDto(item);
-    const promise =
-      this.editedMail.id === null ? Mail.create(dto) : Mail.update(dto);
-    try {
-      await promise;
-      runInAction(() => {
-        this.notifySuccess();
-        this.editedMail = null;
-      });
-    } catch (error) {
-      runInAction(this.notifyError);
-    }
-    await this.reloadTable();
-  };
-  @action
-  cancelMailEdit = () => (this.editedMail = null);
-
-  @observable
-  isOpenImportExport: boolean = false;
-  @action
-  openImpExpDialog = () => (this.isOpenImportExport = true);
-  @action
-  closeImpExpDialog = () => (this.isOpenImportExport = false);
-  @action
-  importDataToDb = async (data: MailEditItem[]) => {
-    try {
-      await Mail.importData(data);
-      runInAction(this.notifySuccess);
-    } catch (error) {
-      runInAction(this.notifyError);
-    }
-    await this.reloadTable();
-  };
-  @action
-  exportDataFromDb = () => {
-    window.open("/mail/export", "_blank");
   };
 }

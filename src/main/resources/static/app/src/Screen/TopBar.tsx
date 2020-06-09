@@ -48,7 +48,7 @@ const TopBar: FC = observer(() => {
             <IconButton
               aria-label="import and export"
               color="inherit"
-              onClick={store.openImpExpDialog}
+              onClick={store.impExpStore.openDialog}
             >
               <ImportExport />
             </IconButton>
@@ -57,7 +57,7 @@ const TopBar: FC = observer(() => {
             <IconButton
               aria-label="add item"
               color="inherit"
-              onClick={store.createMail}
+              onClick={store.mailEditStore.createMail}
             >
               <AddCircleOutline />
             </IconButton>
@@ -72,8 +72,8 @@ const TopBar: FC = observer(() => {
             </IconButton>
           </Tooltip>
           <RunButton
-            startClassification={store.analysisStore.toClassification}
-            startSimilaritySearch={store.analysisStore.toSimilarity}
+            startClassification={store.classificationStore.toSettings}
+            startSimilaritySearch={store.similarityStore.toSettings}
             isSimilarityDisabled={store.isSimilarityDisabled}
           />
         </Toolbar>

@@ -11,8 +11,9 @@ import MailList from "./MailList";
 import EditMail from "./EditMail";
 import { useStore } from "../../Service/store";
 import Notifications from "./Notifications";
-import Analysis from "./Analysis";
 import ImportExportData from "./ImportExportData";
+import Similarity from "./Similarity";
+import Classification from "./Classification";
 
 const drawerWidth = 450;
 
@@ -48,16 +49,9 @@ const MailRoot: FC = observer(() => {
   return (
     <>
       <MailList />
-      <ImportExportData
-        handleClose={store.closeImpExpDialog}
-        isOpen={store.isOpenImportExport}
-        onError={store.notifyError}
-        onExportData={store.exportDataFromDb}
-        onImportData={store.importDataToDb}
-      />
       <Drawer
         className={classes.drawer}
-        open={store.editedMail !== null}
+        open={store.mailEditStore.editedMail !== null}
         variant="temporary"
         classes={{
           paper: classes.drawerPaper,
@@ -72,7 +66,9 @@ const MailRoot: FC = observer(() => {
         close={store.closeNotification}
         notification={store.notification}
       />
-      <Analysis />
+      <Similarity />
+      <Classification />
+      <ImportExportData />
     </>
   );
 });

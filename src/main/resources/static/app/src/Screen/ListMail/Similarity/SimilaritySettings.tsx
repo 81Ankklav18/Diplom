@@ -12,7 +12,7 @@ import {
   FormControl,
   TextField,
 } from "@material-ui/core";
-import { algorithms } from "../../../Service/AnalysisStore";
+import { algorithms } from "../../../Service/SimilarityAnalysis";
 
 interface Props {
   onSelect: (algorithmCode: string, topN: number) => void;

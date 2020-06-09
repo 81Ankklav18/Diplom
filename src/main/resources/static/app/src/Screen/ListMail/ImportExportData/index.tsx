@@ -1,4 +1,5 @@
-import React, { useCallback, useState, ChangeEvent, FC } from "react";
+import React, { useCallback, ChangeEvent, FC } from "react";
+import { observer } from "mobx-react";
 import {
   Button,
   Dialog,
@@ -8,57 +9,22 @@ import {
   DialogTitle,
   Typography,
 } from "@material-ui/core";
-import { MailEditItem } from "../../../Service/types";
+import { useStore } from "../../../Service/store";
 
-interface Props {
-  onImportData: (data: MailEditItem[]) => void;
-  onExportData: () => void;
-  isOpen: boolean;
-  handleClose: () => void;
-  onError: () => void;
-}
-
-const ImportExportData: FC<Props> = ({
-  isOpen,
-  handleClose,
-  onImportData,
-  onExportData,
-  onError,
-}) => {
-  const [fileContent, setFileContent] = useState<string | null>(null);
+const ImportExportData: FC = observer(() => {
+  const { impExpStore: store } = useStore();
   const onFileChoose = useCallback(
     (ev: ChangeEvent<HTMLInputElement>) => {
       const files = ev.target.files;
-      if (!files) return;
-      if (files.length !== 1) return;
-      const file = files[0];
-      const reader = new FileReader();
-      reader.readAsText(file, "UTF-8");
-      reader.onload = (evt) => {
-        if (!evt.target) return;
-        setFileContent(evt.target.result as string);
-      };
-      reader.onerror = (evt) => {
-        onError();
-      };
+      if (!files || files.length !== 1) return;
+      store.loadFileData(files[0]);
     },
-    [onError]
+    [store]
   );
-  const onImportClick = useCallback(() => {
-    if (!fileContent) return;
-    let data: MailEditItem[] | null = null;
-    try {
-      data = JSON.parse(fileContent);
-    } catch (error) {
-      onError();
-    }
-    if (data === null) return;
-    onImportData(data);
-  }, [onImportData, fileContent, onError]);
   return (
     <Dialog
-      open={isOpen}
-      onClose={handleClose}
+      open={store.isOpen}
+      onClose={store.closeDialog}
       scroll="paper"
       aria-labelledby="scroll-dialog-title"
       aria-describedby="scroll-dialog-description"
@@ -75,19 +41,24 @@ const ImportExportData: FC<Props> = ({
               onChange={onFileChoose}
             />
           </Button>
-          <Button disabled={fileContent === null} onClick={onImportClick}>
+          <Button
+            disabled={store.fileContent === null}
+            onClick={store.importDataToDb}
+          >
             Загрузить данные в БД
           </Button>
-          <Button onClick={onExportData}>Выгрузить данные из БД</Button>
+          <Button onClick={store.exportDataFromDb}>
+            Выгрузить данные из БД
+          </Button>
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
+        <Button onClick={store.closeDialog} color="primary">
           Закрыть
         </Button>
       </DialogActions>
     </Dialog>
   );
-};
+});
 
 export default ImportExportData;

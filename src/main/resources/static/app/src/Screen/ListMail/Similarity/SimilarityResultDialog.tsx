@@ -9,13 +9,14 @@ import {
 } from "@material-ui/core";
 
 interface Props {
+  isOpen: boolean;
   content: string | null;
   handleClose: () => void;
 }
 
-const ResultDialog: FC<Props> = ({ content, handleClose }) => (
+const SimilarityResultDialog: FC<Props> = ({ content, handleClose, isOpen }) => (
   <Dialog
-    open={content !== null}
+    open={isOpen}
     onClose={handleClose}
     scroll="paper"
     aria-labelledby="scroll-dialog-title"
@@ -35,4 +36,4 @@ const ResultDialog: FC<Props> = ({ content, handleClose }) => (
   </Dialog>
 );
 
-export default ResultDialog;
+export default SimilarityResultDialog;

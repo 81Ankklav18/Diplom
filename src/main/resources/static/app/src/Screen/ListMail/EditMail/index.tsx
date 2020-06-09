@@ -8,7 +8,7 @@ import Header from "./Header";
 import FormFields from "./Form";
 
 const EditMail: FC = observer(() => {
-  const store = useStore();
+  const store = useStore().mailEditStore;
   if (store.editedMail === null) return null;
   return (
     <Box>
