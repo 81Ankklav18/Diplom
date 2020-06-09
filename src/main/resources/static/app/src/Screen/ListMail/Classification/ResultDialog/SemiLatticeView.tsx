@@ -21,8 +21,10 @@ const SemiLatticeView: FC<Props> = ({ items }) => (
           <Typography>{item.title}</Typography>
         </ExpansionPanelSummary>
         <ExpansionPanelDetails>
-          <Typography>Ids: {item.ids.join(", ")}</Typography>
-          <Typography>{item.tree}</Typography>
+          <div>
+            {item.ids.length !== 0 && <Typography>Ids: {item.ids.join(", ")}</Typography>}
+          </div>
+          <pre>{item.tree}</pre>
         </ExpansionPanelDetails>
       </ExpansionPanel>
     ))}
