@@ -2,10 +2,13 @@ package com.anklav.diplom.algorithm;
 
 import com.anklav.diplom.utils.TreeUtils;
 import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.util.Sets;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Niagara {
+    List<Debut> fDebuts = new ArrayList<>();
     private final List<Debut> debutList;
     private final Set<String> stgood;
     private final Set<String> notS;
@@ -20,104 +23,138 @@ public class Niagara {
 
     public Map<Set<String>, Tree> startNiagara(List<NiagaraObject> n1, List<NiagaraObject> n2) {
         TreeUtils treeUtils = new TreeUtils();
-
-        for (int i = 0; i < n1.size() - 3; i++) {
-            for (int j = i + 1; j < n1.size() - 2; j++) {
-                Debut debut = new Debut();
-                for (NiagaraObject niagaraObject : n2) {
-                    if (TreeUtils.equalsTrees(
-                            treeUtils.treesIntersection(n1.get(i).getTree(), n1.get(j).getTree()),
-                            niagaraObject.getTree())) {
-                        Set<String> temp = new HashSet<>();
-                        temp.addAll(n1.get(i).getId());
-                        temp.addAll(n1.get(j).getId());
-
-                        debut.setQ(temp);
-                        debut.setTest(Boolean.FALSE);
+        Set<Set<String>> debutSet = debut(n1, n2);
+        List<Debut> selectList = select(debutSet);
+        Set<Set<String>> exts = extensions(selectList, n1);
+        Map<Set<String>, Tree> result = new HashMap<>();
+        Map<String, Tree> temp = new HashMap<>();
+        exts.forEach((e) -> {
+            e.forEach((ee) -> {
+                for (int i = 0; i < n1.size(); i++) {
+                    if (ee.equals(n1.get(i).getId().toString().substring(1, n1.get(i).getId().toString().length() - 1))) {
+                        temp.put(ee, n1.get(i).getTree());
                     }
                 }
+            });
+        });
 
-                if (debut.isTest() != Boolean.FALSE)
-                    debut.setTest(Boolean.TRUE);
+        Map<Set<String>, Tree> temp1 = new HashMap<>();
+        temp.forEach((k1, v1) -> {
+            temp.forEach((k2, v2) -> {
+                if (!k1.equals(k2)) {
+                    temp1.put(Set.of(k1, k2), treeUtils.treesIntersection(v1, v2));
+                }
+            });
+        });
+
+        Map<Set<String>, Tree> temp2 = new HashMap<>();
+        temp1.forEach((k1, v1) -> {
+            temp1.forEach((k2, v2) -> {
+                temp2.put(Sets.union(k1, k2), treeUtils.treesIntersection(v1, v2));
+            });
+        });
+
+        exts.forEach((e) -> {
+            result.put(e, temp2.get(e));
+        });
+
+        return result;
+    }
+
+    private Set<Set<String>> debut(List<NiagaraObject> n1, List<NiagaraObject> n2) {
+        Set<Set<String>> stest = new HashSet<>();
+        TreeUtils treeUtils = new TreeUtils();
+
+        for (int i = 0; i < n1.size(); i++) {
+            for (int j = i + 1; j < n1.size(); j++) {
+                Debut debut = new Debut();
+
+                Tree tree = treeUtils.treesIntersection(n1.get(i).getTree(), n1.get(j).getTree());
                 Set<String> temp = new HashSet<>();
                 temp.addAll(n1.get(i).getId());
                 temp.addAll(n1.get(j).getId());
                 debut.setS(temp);
-                this.notS.addAll(temp);
-                if (n1.get(i).getTree() != null && n1.get(j).getTree() != null)
-                    debut.setTS(treeUtils.treesIntersection(n1.get(i).getTree(), n1.get(j).getTree()));
-                if (debut.getQ() == null) {
-                    if (this.debutList.size() > 0) {
-                        for (Debut value : debutList) {
-                            if (TreeUtils.equalsTrees(value.getTS(), debut.getTS())) {
-                                value.setGeneralization(debut.getS());
-                                value.setSTest(debut.getS());
-                                debut.setGeneralization(debut.getS());
-                                debut.setSTest(debut.getS());
-                            }
+                debut.setGeneralization(temp);
+                debut.setTS(tree);
+                debut.setTest(Boolean.TRUE);
+                for (int k = 0; k < n1.size(); k++) {
+                    if (k != i && k != j) {
+                        if (TreeUtils.equalsTrees(tree, treeUtils.treesIntersection(tree, n1.get(k).getTree()))) {
+                            Set<String> tempOfGeneralization = new HashSet<>();
+                            tempOfGeneralization.addAll(temp);
+                            tempOfGeneralization.addAll(n1.get(k).getId());
+                            debut.setGeneralization(tempOfGeneralization);
                         }
                     }
                 }
-                debut.getS().forEach((s) -> {
-                    if (countOfIndexes.containsKey(s)) {
-                        countOfIndexes.put(s, countOfIndexes.get(s) + 1);
-                    } else {
-                        countOfIndexes.put(s, 1);
-                    }
-                });
-                debutList.add(debut);
+                debut.setSTest(debut.getGeneralization());
+                stest.add(debut.getGeneralization());
+                fDebuts.add(debut);
             }
         }
 
-        for (int i = 2; i < n1.size(); i++) {
-            List<Debut> tempList = new ArrayList<>();
-            for (int j = 0; j < this.debutList.size(); j++) {
-                for (int k = j + 1; k < n1.size(); k++) {
-                    Debut debut = new Debut();
+        return stest;
+    }
 
-                    debut.setTest(Boolean.TRUE);
-                    Set<String> temp = new HashSet<>();
-                    temp.addAll(this.debutList.get(j).getS());
-                    temp.addAll(n1.get(k).getId());
-                    debut.setS(temp);
-                    debut.setTS(treeUtils.treesIntersection(this.debutList.get(j).getTS(), n1.get(j).getTree()));
-                    if (debut.getQ() == null) {
-                        for (Debut value : this.debutList) {
-                            if (TreeUtils.equalsTrees(value.getTS(), debut.getTS())) {
-                                value.setGeneralization(debut.getS());
-                                value.setSTest(debut.getS());
-//                                debut.setGeneralization(debut.getS());
-                                debut.setSTest(debut.getS());
-                            }
-                        }
+    private List<Debut> select(Set<Set<String>> debuts) {
+        List<Debut> debutList = new ArrayList<>();
+        Set<String> elements = new HashSet<>();
+
+        debuts.forEach(elements::addAll);
+
+        debuts.forEach((e) -> {
+            Debut debut = new Debut();
+            debut.setS(e);
+            debut.setNotS(com.google.common.collect.Sets.difference(elements, e));
+            debuts.forEach((e2) -> {
+                if (e2.containsAll(e)) {
+                    if (! e2.equals(e)) {
+                        debut.setV(e2);
                     }
-                    tempList.add(debut);
                 }
+            });
+            if (debut.getV() == null){
+                debut.setCandidate(debut.getNotS());
+                debut.setSelect(debut.getNotS());
+            } else {
+                debut.setCandidate(com.google.common.collect.Sets.difference(debut.getNotS(), debut.getV()));
+                debut.setSelect(com.google.common.collect.Sets.difference(debut.getNotS(), debut.getV()));
             }
-            this.debutList.addAll(tempList);
-        }
-        List<Debut> listOfGoods = new ArrayList<>();
-        countOfIndexes.forEach((k, v) -> {
-            if (v == 1) {
-                for (int i = 0; i < debutList.size(); i++) {
-                    int finalI = i;
-                    debutList.get(i).getS().forEach((s) -> {
-                        if (s.equals(k)) {
-                            this.stgood.addAll(debutList.get(finalI).getSTest());
-                            listOfGoods.add(debutList.get(finalI));
-                        }
-                    });
-                }
-            }
+            debutList.add(debut);
         });
-        debutList.removeAll(listOfGoods);
 
-        Map<Set<String>, Tree> result = new HashMap<>();
+        return debutList;
+    }
 
-        for (Debut debut : debutList) {
-            result.put(debut.getS(), debut.getTS());
+    private Set<Set<String>> extensions(List<Debut> debuts, List<NiagaraObject> n1) {
+        Set<Debut> extList = new HashSet<>();
+        Set<Set<String>> ext = new HashSet<>();
+        TreeUtils treeUtils = new TreeUtils();
+        for (int i = 0; i < debuts.size(); i++) {
+            Debut debut = new Debut();
+            int finalI = i;
+            debuts.get(i).getSelect().forEach((e) -> {
+                Set<String> temp = new HashSet<>();
+                temp.addAll(debuts.get(finalI).getS());
+                temp.add(e);
+                debut.setS(temp);
+                debut.setExt(temp);
+                for(int j = 0; j < n1.size(); j++) {
+                    if (n1.get(j).getId().toString().substring(1, n1.get(j).getId().toString().length() - 1).equals(e)) {
+                        for (int k = 0; k < fDebuts.size(); k++) {
+                            if (fDebuts.get(k).getS().equals(debuts.get(k).getS())) {
+                                debut.setTS(treeUtils.treesIntersection(n1.get(j).getTree(), fDebuts.get(k).getTS()));
+                            }
+                        }
+                    }
+                }
+
+                extList.add(debut);
+                ext.add(temp);
+            });
         }
 
-        return result;
+        fDebuts.addAll(extList);
+        return ext;
     }
 }
