@@ -1,5 +1,5 @@
 # Diplom
-
+JAR:
 Для запуска установить и настроить JDK с переменными окружения JAVA_HOME, PATH.
 Запустить следующую команду:
 java -Dserver.port=8888 -jar <ПУТЬ_ДО_ФАЙЛА>diplom-0.0.1-SNAPSHOT.jar
@@ -7,3 +7,9 @@ java -Dserver.port=8888 -jar <ПУТЬ_ДО_ФАЙЛА>diplom-0.0.1-SNAPSHOT.jar
 Запуск произойдет по адресу localhost:8888/index.html.
 
 Далее требуется загрузить данные mail.json.
+
+IDEA:
+Для запуска из IDE требуется перейти в стартовый класс DiplomApplication и нажать кнопку запуска, либо использовать в терминале команду  ./gradlew bootRun. Для остановки приложения из терминала -- Ctrl+C.
+Для запуска сайта перейти в терминале в папку src/main/resources/static/app и прописать команды:
+npm install -- 1н раз
+npm build -- каждый раз при запуске приложения.
