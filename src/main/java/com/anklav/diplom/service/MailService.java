@@ -232,7 +232,7 @@ public class MailService {
             }
         }
 
-        boolean flag = Boolean.TRUE;
+        boolean flag = Boolean.FALSE;
 
         mailDTOList.removeAll(class1);
         mailDTOList.removeAll(class2);

@@ -46,7 +46,7 @@ const ClassificationResultDialog: FC<Props> = ({
           variant="fullWidth"
         >
           <Tab label="Метрики" />
-          <Tab label="Решётка" />
+          <Tab label="Полурешётка" />
         </Tabs>
         {currentTab === 0 ? (
           <MetricsView content={content} />

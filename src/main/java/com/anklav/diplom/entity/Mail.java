@@ -29,6 +29,6 @@ public class Mail {
     private String snippet;
     @JsonDeserialize(using= CustomerDateAndTimeDeserialize.class)
     private Date date;
-    @Column(columnDefinition="VARCHAR(10000)")
+    @Column(columnDefinition="VARCHAR(15000)")
     private String tree;
 }
