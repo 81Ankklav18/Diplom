@@ -196,23 +196,26 @@ public class MailService {
         mailFromDb.setSnippet(editViewDTO.getBody().length() > 300 ?
                 editViewDTO.getBody().substring(0, 300) : editViewDTO.getBody());
         mailFromDb.setMessageId(editViewDTO.getId());
+        fillTrees(Collections.singletonList(editViewDTO.getId()), Boolean.TRUE);
 
         return mailFromDb;
     }
 
     public AnalisysDTO classification(ClassificationDTO dto) {
         List<Mail> mailDTOList = getMailsByIds(dto.getId());
-        Map<Set<String>, Tree> semiLattice = null;
+        Map<Set<String>, Tree> semiLatticePlus = null;
+        Map<Set<String>, Tree> semiLatticeMinus = null;
+        Map<Set<String>, Tree> semiLatticeWithAdd = new HashMap<>();
 
         List<Mail> class1 = new ArrayList<>();
         List<Mail> class2 = new ArrayList<>();
         int c1 = 0;
         int c2 = 0;
-        int classSize;
+        int classSize = ((mailDTOList.size() * dto.getTrainPercent()) / 100) / 2;
 //        if (dto.getMethod().equals(ChooseAlgorithm.NIAGARA.name())) {
 //            classSize = 20;
 //        } else {
-        classSize = 7;
+//        classSize = 7;
 //        }
 
         for (Mail value : mailDTOList) {
@@ -221,19 +224,20 @@ public class MailService {
                     class1.add(value);
                     c1++;
                 }
+            } else {
+                if (c2 < classSize) {
+                    class2.add(value);
+                    c2++;
+                }
             }
-//            else {
-//                if (c2 < classSize) {
-//                    class2.add(value);
-//                    c2++;
-//                }
-//            }
         }
+
+        boolean flag = Boolean.TRUE;
 
         mailDTOList.removeAll(class1);
         mailDTOList.removeAll(class2);
 
-        fillTrees(dto.getId());
+        fillTrees(dto.getId(), Boolean.FALSE);
 
         ConcurrentHashMap<Set<String>, Tree> matrixOfClass1 = new ConcurrentHashMap<>();
         ConcurrentHashMap<Set<String>, Tree> matrixOfClass2 = new ConcurrentHashMap<>();
@@ -243,22 +247,101 @@ public class MailService {
                 matrixOfClass1.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
         }
 
-//        for (Mail mail : class2) {
-//            if (Tree.valueOf(mail.getTree()) != null)
-//                matrixOfClass2.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
-//        }
+        for (Mail mail : class2) {
+            if (Tree.valueOf(mail.getTree()) != null)
+                matrixOfClass2.put(Set.of(mail.getId().toString()), Tree.valueOf(mail.getTree()));
+        }
 
         Map<Mail, String> classification = new HashMap<>();
         if (dto.getMethod().equals(ChooseAlgorithm.CB0.name())) {
-            semiLattice = getCbOSemiLattice(class1, matrixOfClass1);
-            classification = CbOClassification(semiLattice, mailDTOList);
+            System.out.println("CbO START");
+            long l = System.currentTimeMillis();
+            semiLatticePlus = getCbOSemiLattice(class1, matrixOfClass1);
+            semiLatticeMinus = getCbOSemiLattice(class2, matrixOfClass2);
+            Map<Set<String>, Tree> finalSemiLatticeMinus = semiLatticeMinus;
+            semiLatticePlus.forEach((k1, v1) -> {
+                finalSemiLatticeMinus.forEach((k2, v2) -> {
+                    if (!TreeUtils.equalsTrees(v1, v2)) {
+                        semiLatticeWithAdd.putAll(Map.of(k1, v1));
+                    } else {
+                        System.out.println("Wrong: " + k1.toString());
+                    }
+                });
+            });
+
+            if (flag) {
+                Map<Set<String>, Tree> temp = new HashMap<>();
+                semiLatticePlus.forEach((k, v) -> {
+                    if (k.size() == classSize) {
+                        temp.put(k, v);
+                    }
+                });
+                semiLatticePlus = temp;
+            }
+            System.out.println("CbO CbOEnd " + (double) (System.currentTimeMillis() - l));
+            classification = CbOClassification(semiLatticeWithAdd, mailDTOList);
+
         } else if (dto.getMethod().equals(ChooseAlgorithm.NORRIS.name())) {
-            classification = NorrisClassification(class1, class2, matrixOfClass1,
-                    matrixOfClass2, mailDTOList);
+            System.out.println("Norris START");
+            long l = System.currentTimeMillis();
+            semiLatticePlus = getNorris(matrixOfClass1);
+            //TODO: duplicate
+            semiLatticeMinus = getNorris(matrixOfClass2);
+            Map<Set<String>, Tree> finalSemiLatticeMinus = semiLatticeMinus;
+            semiLatticePlus.forEach((k1, v1) -> {
+                finalSemiLatticeMinus.forEach((k2, v2) -> {
+                    if (!TreeUtils.equalsTrees(v1, v2)) {
+                        semiLatticeWithAdd.putAll(Map.of(k1, v1));
+                    } else {
+                        System.out.println("Wrong: " + k1.toString());
+                    }
+                });
+            });
+
+            if (flag) {
+                Map<Set<String>, Tree> temp = new HashMap<>();
+                semiLatticePlus.forEach((k, v) -> {
+                    if (k.size() == classSize) {
+                        temp.put(k, v);
+                    }
+                });
+                semiLatticePlus = temp;
+            }
+            System.out.println("Norris NorrisEnd " + (double) (System.currentTimeMillis() - l));
+            classification = NorrisClassification(semiLatticeWithAdd, mailDTOList);
+
         } else if (dto.getMethod().equals(ChooseAlgorithm.NIAGARA.name())) {
-            classification = NiagaraClassification(class1, class2, matrixOfClass1,
-                    matrixOfClass2, mailDTOList);
+            System.out.println("Niagara start");
+            if (classSize == 3) {
+                long l = System.currentTimeMillis();
+                semiLatticePlus = getNiagara(class1, matrixOfClass1);
+                System.out.println("Nia NiaEnd " + (double) (System.currentTimeMillis() - l));
+            } else {
+                Norris norris = new Norris();
+                long l = System.currentTimeMillis();
+                semiLatticePlus = norris.getNorris(matrixOfClass1);
+                System.out.println("Nia NiaEnd " + (double) (System.currentTimeMillis() - l));
+            }
+
+            Map<Set<String>, Tree> temp = new HashMap<>();
+            semiLatticePlus.forEach((k, v) -> {
+                if (k.size() == classSize) {
+                    temp.put(k, v);
+                }
+            });
+            semiLatticePlus = temp;
+            Map<Set<String>, Tree> finalSemiLatticeMinus = semiLatticeMinus;
+
+            classification = NiagaraClassification(semiLatticePlus, mailDTOList);
         }
+
+        assert semiLatticePlus != null;
+        semiLatticePlus = semiLatticePlus
+                .entrySet()
+                .stream()
+                .sorted(Comparator.comparingInt(e -> e.getKey().size()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (e1, e2) -> e1, LinkedHashMap::new));
 
         AtomicInteger tp = new AtomicInteger();
         AtomicInteger tn = new AtomicInteger();
@@ -290,21 +373,26 @@ public class MailService {
 
         List<SemiLatticeViewDTO> semiLatticeViewDTOS = new ArrayList<>();
         AtomicInteger cnt = new AtomicInteger();
-        assert semiLattice != null; //TODO: ?
-        semiLattice.forEach((k, v) -> {
+        semiLatticePlus.forEach((k, v) -> {
             cnt.getAndIncrement();
-            semiLatticeViewDTOS.add(new SemiLatticeViewDTO("Объект " + cnt.get(), k, v.toString()));
+            semiLatticeViewDTOS.add(new SemiLatticeViewDTO(k.toString(), k, v.pennString()));
         });
 
         return new AnalisysDTO(precision, recall, f1, semiLatticeViewDTOS);
     }
 
-    private void fillTrees(List<String> ids) {
-        List<String> emptyTreeMails = ids.stream()
-                .filter(x -> getMailById(x).getTree() == null)
-                .collect(Collectors.toList());
+    private void fillTrees(List<String> ids, boolean update) {
+        List<String> emptyTreeMails;
+        List<Mail> mailDTOList;
 
-        List<Mail> mailDTOList = getMailsByIds(emptyTreeMails);
+        if (!update) {
+            emptyTreeMails = ids.stream()
+                    .filter(x -> getMailById(x).getTree() == null)
+                    .collect(Collectors.toList());
+            mailDTOList = getMailsByIds(emptyTreeMails);
+        } else {
+            mailDTOList = getMailsByIds(ids);
+        }
 
         mailDTOList.stream()
                 .map(x -> {
@@ -335,7 +423,7 @@ public class MailService {
                             }
                         }
                         Mail mail = getMailById(k.toString());
-                        mail.setTree(tree[0].toString());
+                        mail.setTree(tree[0].pennString());
                         mailRepository.save(mail);
                     });
 
@@ -345,97 +433,29 @@ public class MailService {
     }
 
     private Map<Set<String>, Tree> getCbOSemiLattice(
-            List<Mail> class1, ConcurrentHashMap<Set<String>,
-            Tree> matrixOfClass1) {
+            List<Mail> class1, ConcurrentHashMap<Set<String>, Tree> matrixOfClass1) {
+//        System.out.println("CbO START");
+//        long l = System.currentTimeMillis();
         CloseByOne closeByOneC1 = new CloseByOne(matrixOfClass1, class1.size());
-        Map<Set<String>, Tree> resultCbO1 = closeByOneC1.recursiveCbO(matrixOfClass1);
+//        System.out.println("CbO CbOEnd " + (double) (System.currentTimeMillis() - l));
 
-        return resultCbO1;
+        return closeByOneC1.recursiveCbO(matrixOfClass1);
     }
 
-    private Map<Mail, String> CbOClassification(Map<Set<String>, Tree> resultCbO1,
-                                                List<Mail> mailDTOList) {
-        TreeUtils treeUtils = new TreeUtils();
-        Map<Mail, String> classification = new ConcurrentHashMap<>();
+    private Map<Set<String>, Tree> getNorris(ConcurrentHashMap<Set<String>, Tree> matrixOfClass1) {
+        Norris norris = new Norris();
 
-//        CloseByOne closeByOneC2 = new CloseByOne(matrixOfClass2, class2.size());
-        System.out.println("CbO1 START");
-        long l = System.currentTimeMillis();
-        System.out.println("CbO CbOEnd" + (double) (System.currentTimeMillis() - l));
-        System.out.println("CbO1 END");
-        System.out.println("CbO2 START");
-//        Map<Set<String>, Tree> resultCbO2 = closeByOneC2.recursiveCbO(matrixOfClass2);
-        System.out.println("CbO2 END");
+//        System.out.println("Norris START");
+//        long l = System.currentTimeMillis();
+        Map<Set<String>, Tree> treeMap = norris.getNorris(matrixOfClass1);
+//        System.out.println("Norris NorrisEnd " + (double) (System.currentTimeMillis() - l));
 
-        System.out.println("Classify START");
-        l = System.currentTimeMillis();
-        for (Mail mail : mailDTOList) {
-            resultCbO1.forEach((key, value) -> {
-                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
-                    classification.put(mail, FABLES);
-//                    System.out.println(mail.toString() + " " + FABLES);
-                }
-            });
-
-            if (!classification.containsKey(mail)) {
-                classification.put(mail, COVID);
-//                System.out.println(mail.toString() + " " + COVID);
-            }
-        }
-        System.out.println("CbO classEnd" + (double) (System.currentTimeMillis() - l));
-        System.out.println("Classify END");
-
-        return classification;
+        return treeMap;
     }
 
-    private Map<Mail, String> NorrisClassification(List<Mail> class1,
-                                                   List<Mail> class2,
-                                                   ConcurrentHashMap<Set<String>, Tree> matrixOfClass1,
-                                                   ConcurrentHashMap<Set<String>, Tree> matrixOfClass2,
-                                                   List<Mail> mailDTOList) {
-        TreeUtils treeUtils = new TreeUtils();
-        Map<Mail, String> classification = new ConcurrentHashMap<>();
-
-        Norris norris1 = new Norris();
-//        Norris norris2 = new Norris();
-        System.out.println("Norris START");
-        long l = System.currentTimeMillis();
-        Map<Set<String>, Tree> resultNorris1 = norris1.getNorris(matrixOfClass1);
-        System.out.println("Norr NorrEnd" + (double) (System.currentTimeMillis() - l));
-        System.out.println("Norris END");
-        System.out.println("Norris START");
-//        Map<Set<String>, Tree> resultNorris2 = norris2.getNorris(matrixOfClass2);
-        System.out.println("Norris END");
-
-        System.out.println("Classify START");
-        l = System.currentTimeMillis();
-        for (Mail mail : mailDTOList) {
-            resultNorris1.forEach((key, value) -> {
-                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
-                    classification.put(mail, FABLES);
-//                    System.out.println(mail.toString() + " " + FABLES);
-                }
-            });
-
-            if (!classification.containsKey(mail)) {
-                classification.put(mail, COVID);
-//                System.out.println(mail.toString() + " " + COVID);
-            }
-        }
-        System.out.println("Classify END");
-        System.out.println("Norr classEnd" + (double) (System.currentTimeMillis() - l));
-
-        return classification;
-    }
-
-    private Map<Mail, String> NiagaraClassification(List<Mail> class1,
-                                                    List<Mail> class2,
-                                                    ConcurrentHashMap<Set<String>, Tree> matrixOfClass1,
-                                                    ConcurrentHashMap<Set<String>, Tree> matrixOfClass2,
-                                                    List<Mail> mailDTOList) {
+    private Map<Set<String>, Tree> getNiagara(List<Mail> class1, ConcurrentHashMap<Set<String>, Tree> matrixOfClass1) {
         System.out.println("Niagara start");
         TreeUtils treeUtils = new TreeUtils();
-        Map<Mail, String> classification = new ConcurrentHashMap<>();
         List<NiagaraObject> niagaraObjectList1 = new ArrayList<>();
         List<NiagaraObject> niagaraObjectList2 = new ArrayList<>();
 
@@ -460,11 +480,69 @@ public class MailService {
 //        }
 
         Niagara niagara = new Niagara();
-        long l = System.currentTimeMillis();
+//        long l = System.currentTimeMillis();
         Map<Set<String>, Tree> niagaraList = niagara.startNiagara(niagaraObjectList1, niagaraObjectList2);
-        System.out.println("Nia NiaEnd" + (double) (System.currentTimeMillis() - l));
+//        System.out.println("Nia NiaEnd " + (double) (System.currentTimeMillis() - l));
 
-        l = System.currentTimeMillis();
+        return niagaraList;
+
+    }
+
+    private Map<Mail, String> CbOClassification(Map<Set<String>, Tree> resultCbO1,
+                                                List<Mail> mailDTOList) {
+        TreeUtils treeUtils = new TreeUtils();
+        Map<Mail, String> classification = new ConcurrentHashMap<>();
+        System.out.println("Classify START");
+        long l = System.currentTimeMillis();
+        for (Mail mail : mailDTOList) {
+            resultCbO1.forEach((key, value) -> {
+                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
+                    classification.put(mail, FABLES);
+//                    System.out.println(mail.toString() + " " + FABLES);
+                }
+            });
+
+            if (!classification.containsKey(mail)) {
+                classification.put(mail, COVID);
+//                System.out.println(mail.toString() + " " + COVID);
+            }
+        }
+        System.out.println("CbO classEnd" + (double) (System.currentTimeMillis() - l));
+        System.out.println("Classify END");
+
+        return classification;
+    }
+
+    private Map<Mail, String> NorrisClassification(Map<Set<String>, Tree> resultNorris1,
+                                                   List<Mail> mailDTOList) {
+        TreeUtils treeUtils = new TreeUtils();
+        Map<Mail, String> classification = new ConcurrentHashMap<>();
+
+        long l = System.currentTimeMillis();
+        for (Mail mail : mailDTOList) {
+            resultNorris1.forEach((key, value) -> {
+                if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {
+                    classification.put(mail, FABLES);
+//                    System.out.println(mail.toString() + " " + FABLES);
+                }
+            });
+
+            if (!classification.containsKey(mail)) {
+                classification.put(mail, COVID);
+//                System.out.println(mail.toString() + " " + COVID);
+            }
+        }
+        System.out.println("Classify END");
+        System.out.println("Norr classEnd" + (double) (System.currentTimeMillis() - l));
+
+        return classification;
+    }
+
+    private Map<Mail, String> NiagaraClassification(Map<Set<String>, Tree> niagaraList, List<Mail> mailDTOList) {
+        Map<Mail, String> classification = new ConcurrentHashMap<>();
+        TreeUtils treeUtils = new TreeUtils();
+
+        long l = System.currentTimeMillis();
         for (Mail mail : mailDTOList) {
             niagaraList.forEach((key, value) -> {
                 if (TreeUtils.equalsTrees(value, treeUtils.treesIntersection(value, Tree.valueOf(mail.getTree())))) {

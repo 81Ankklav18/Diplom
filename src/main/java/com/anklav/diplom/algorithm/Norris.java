@@ -16,7 +16,9 @@ public class Norris {
             matrix.forEach((key2, value2) -> {
                 if (equalsMapa(Map.of(key1, value1), Map.of(key2, value2))) {
                     resultList.putAll(union(Map.of(key1, value1), Map.of(key2, value2)));
-                    listOfNonClosableElements.putAll(Map.of(key2, value2));
+                    if (!(key1.size() == 1 || key2.size() == 1)) {
+                        listOfNonClosableElements.putAll(Map.of(key2, value2));
+                    }
                 } else {
                     resultList.putAll(Map.of(key1, value1));
                     Map<Set<String>, Tree> intersection;
@@ -30,12 +32,12 @@ public class Norris {
         resultList = union(resultList, intersection(resultList, resultList));
         resultList.keySet().removeAll(listOfNonClosableElements.keySet());
 
-        resultList = resultList
-                .entrySet()
-                .stream()
-                .sorted(Comparator.comparingInt(e -> e.getKey().size()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (e1, e2) -> e1, LinkedHashMap::new));
+//        resultList = resultList
+//                .entrySet()
+//                .stream()
+//                .sorted(Comparator.comparingInt(e -> e.getKey().size()))
+//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+//                        (e1, e2) -> e1, LinkedHashMap::new));
         return this.resultList;
     }
 
