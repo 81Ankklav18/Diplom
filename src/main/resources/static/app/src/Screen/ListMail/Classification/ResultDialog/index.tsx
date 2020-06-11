@@ -16,9 +16,11 @@ interface Props {
   isOpen: boolean;
   content: ClassificationResult | null;
   handleClose: () => void;
+  saveAll: () => void;
 }
 
 const ClassificationResultDialog: FC<Props> = ({
+  saveAll,
   content,
   handleClose,
   isOpen,
@@ -51,13 +53,16 @@ const ClassificationResultDialog: FC<Props> = ({
         {currentTab === 0 ? (
           <MetricsView content={content} />
         ) : (
-          <SemiLatticeView items={content.semiLatticeViewDTO} />
+          <SemiLatticeView
+            items={content.semiLatticeViewDTO}
+          />
         )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="primary">
           Закрыть
         </Button>
+        <Button onClick={saveAll}>Сохранить решётку</Button>
       </DialogActions>
     </Dialog>
   );

@@ -19,6 +19,7 @@ const AnalysisRoot: FC = observer(() => {
         isOpen={store.isOpenedResult}
         handleClose={store.resultClose}
         content={store.result}
+        saveAll={store.saveSemiLatticeAsFile}
       />
     </>
   );

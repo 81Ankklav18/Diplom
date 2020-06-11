@@ -2,6 +2,7 @@ import { observable, action, runInAction } from "mobx";
 import { MailEditItem } from "./types";
 import { Mail } from "./queries";
 import BaseService from "./BaseService";
+import { saveAsFile } from "./contentLoad";
 
 export default class ImpExpService extends BaseService {
   reloadTable: () => Promise<void>;
@@ -60,7 +61,17 @@ export default class ImpExpService extends BaseService {
     await this.reloadTable();
   };
   @action
-  exportDataFromDb = () => {
-    window.open("/mail/export", "_blank");
+  exportDataFromDb = async () => {
+    try {
+      const data = await Mail.exportData();
+      saveAsFile(
+        "exportedData.json",
+        JSON.stringify(data.data, null, "\t"),
+        "application/json"
+      );
+      runInAction(this.notifySuccess);
+    } catch (error) {
+      runInAction(this.notifyError);
+    }
   };
 }

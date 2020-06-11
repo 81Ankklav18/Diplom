@@ -35,4 +35,6 @@ export const Mail = {
     fetcher<SimilarityResult>("/mail/similarity", "POST", { id, method, topN }),
   importData: (data: MailEditItem[]) =>
     fetcher<void>("/mail/import", "POST", data),
+  exportData: () =>
+    fetcher<MailEditItem[]>("/mail/export", "GET"),
 };
