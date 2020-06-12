@@ -17,6 +17,7 @@
     "react-dom": "^16.13.1",
     "react-final-form": "^6.4.0",
     "react-scripts": "3.4.1",
+    "react-virtualized": "^9.21.2",
     "typescript": "^3.7.5"
   },
   "scripts": {

@@ -62,7 +62,7 @@ const ClassificationResultDialog: FC<Props> = ({
         <Button onClick={handleClose} color="primary">
           Закрыть
         </Button>
-        <Button onClick={saveAll}>Сохранить решётку</Button>
+        <Button onClick={saveAll}>Сохранить полурешётку</Button>
       </DialogActions>
     </Dialog>
   );
