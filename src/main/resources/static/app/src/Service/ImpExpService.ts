@@ -53,7 +53,7 @@ export default class ImpExpService extends BaseService {
     }
     if (data === null) return;
     try {
-      await Mail.importData(data);
+      await Mail.importDataJson(data);
       runInAction(this.notifySuccess);
     } catch (error) {
       runInAction(this.notifyError);
