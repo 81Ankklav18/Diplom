@@ -2,14 +2,22 @@ package com.anklav.diplom.controller;
 
 import com.anklav.diplom.dto.*;
 import com.anklav.diplom.entity.Mail;
+import com.anklav.diplom.mapper.MailImportMapper;
 import com.anklav.diplom.mapper.TableViewMapper;
 import com.anklav.diplom.repository.MailRepository;
 import com.anklav.diplom.service.MailService;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.opencsv.bean.CsvToBeanBuilder;
+import com.opencsv.bean.CsvToBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,8 +26,6 @@ import java.util.stream.Collectors;
 @RequestMapping("mail")
 @CrossOrigin("*")
 public class MailController {
-    private static JsonMapper jsonMapper = new JsonMapper();
-
     @Autowired
     MailRepository mailRepository;
     @Autowired
@@ -48,10 +54,31 @@ public class MailController {
         return mailService.createMessage(mailRepository.save(mail));
     }
 
-    @PostMapping("import")
+    @PostMapping("import/json")
     public void importDataJson(@RequestBody List<Mail> mails) {
         for (Mail mail : mails) {
             mailService.createMessage(mailRepository.save(mail));
+        }
+    }
+
+    @PostMapping("import/csv")
+    public ResponseEntity<String> importDataCsv(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty())
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Выберите файл для импорта.");
+        try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            CsvToBean<MailCsvDTO> csvToBean = new CsvToBeanBuilder<MailCsvDTO>(reader)
+                    .withType(MailCsvDTO.class)
+                    .withIgnoreLeadingWhiteSpace(true)
+                    .build();
+
+            List<MailCsvDTO> mails = csvToBean.parse();
+
+            for (MailCsvDTO mail : mails) {
+                mailService.createMessage(mailRepository.save(MailImportMapper.CsvToMail(mail)));
+            }
+            return ResponseEntity.status(HttpStatus.OK).body("Импорт завершен.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка обработки CSV файла.");
         }
     }
 

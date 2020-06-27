@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-	compile group: 'com.opencsv', name: 'opencsv', version: '3.7'
+	compile group: 'com.opencsv', name: 'opencsv', version: '4.2'
 	compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.9.2'
 	compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.9.2', classifier: 'models'
 	compile group: 'nz.ac.waikato.cms.weka', name: 'weka-stable', version: '3.8.0'
