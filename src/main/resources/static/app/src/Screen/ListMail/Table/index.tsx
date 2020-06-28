@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { FC, useCallback } from "react";
 import {
   createStyles,
   makeStyles,
@@ -52,6 +52,48 @@ type Props = {
   removeSelected: () => void;
 };
 
+type RowProps = {
+  row: MailListItem;
+  selected: Id[];
+  selectItem: (id: Id) => void;
+  editItem: (id: Id) => void;
+};
+
+const TableRowCheckable: FC<RowProps> = ({
+  row,
+  selectItem,
+  editItem,
+  selected,
+}) => {
+  const isItemSelected = selected.indexOf(row.id) !== -1;
+  const onCheckboxClick = () => selectItem(row.id);
+  const onEditClick = () => editItem(row.id);
+  return (
+    <TableRow
+      hover
+      role="checkbox"
+      aria-checked={isItemSelected}
+      tabIndex={-1}
+      key={row.id}
+      selected={isItemSelected}
+    >
+      <TableCell padding="checkbox">
+        <Checkbox checked={isItemSelected} onClick={onCheckboxClick} />
+      </TableCell>
+      <TableCell>{row.id}</TableCell>
+      <TableCell>{row.subject}</TableCell>
+      <TableCell>{row.snippet}</TableCell>
+      <TableCell>{row.date}</TableCell>
+      <TableCell>{row.label}</TableCell>
+      <TableCell padding="checkbox">
+        <IconButton onClick={onEditClick}>
+          <EditIcon />
+        </IconButton>
+      </TableCell>
+    </TableRow>
+  );
+};
+
 export default function EnhancedTable({
   rows,
   selected,
@@ -82,44 +124,14 @@ export default function EnhancedTable({
               rowCount={rows.length}
             />
             <TableBody>
-              {rows.map((row, index) => {
-                const isItemSelected = selected.indexOf(row.id) !== -1;
-                const labelId = `enhanced-table-checkbox-${index}`;
-                return (
-                  <TableRow
-                    hover
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={row.id}
-                    selected={isItemSelected}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={isItemSelected}
-                        onClick={() => selectItem(row.id)}
-                      />
-                    </TableCell>
-                    <TableCell
-                      component="th"
-                      id={labelId}
-                      scope="row"
-                      padding="none"
-                    >
-                      {row.id}
-                    </TableCell>
-                    <TableCell>{row.subject}</TableCell>
-                    <TableCell>{row.snippet}</TableCell>
-                    <TableCell>{row.date}</TableCell>
-                    <TableCell>{row.label}</TableCell>
-                    <TableCell padding="checkbox">
-                      <IconButton onClick={() => editItem(row.id)}>
-                        <EditIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {rows.map((row) => (
+                <TableRowCheckable
+                  row={row}
+                  selectItem={selectItem}
+                  editItem={editItem}
+                  selected={selected}
+                />
+              ))}
             </TableBody>
           </Table>
         </TableContainer>

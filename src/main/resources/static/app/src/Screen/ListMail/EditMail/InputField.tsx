@@ -81,7 +81,7 @@ export const DateField: FC<DateProps> = ({ name, label }) => (
           name={input.name}
           value={input.value}
           error={meta.error}
-          margin="normal"
+          margin="dense"
           disableToolbar
           variant="inline"
           inputVariant="outlined"

@@ -2,7 +2,7 @@ import { action, runInAction } from "mobx";
 import { Mail } from "./queries";
 import AnalysisBase from "./AnalysisBase";
 import { ClassificationResult } from "./types";
-import { saveAsFile } from "./contentLoad";
+import { saveAsFile, contentType } from "./contentLoad";
 
 export const algorithms = ["CB0", "NORRIS", "NIAGARA"];
 export default class ClassificationAnalysis extends AnalysisBase<
@@ -43,7 +43,7 @@ export default class ClassificationAnalysis extends AnalysisBase<
       saveAsFile(
         "semilattice.json",
         JSON.stringify(this.result.semiLatticeViewDTO, null, "\t"),
-        "application/json"
+        contentType.json
       );
       runInAction(this.notifySuccess);
     } catch (error) {

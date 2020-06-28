@@ -15,3 +15,8 @@ export function saveAsFile(filename: string, data: any, type: string) {
     }, 50);
   }
 }
+
+export const contentType = {
+  json: "application/json",
+  csv: "text/csv",
+};

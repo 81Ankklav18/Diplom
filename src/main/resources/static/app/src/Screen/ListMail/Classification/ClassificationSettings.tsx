@@ -8,12 +8,17 @@ import {
   Typography,
 } from "@material-ui/core";
 import { algorithms } from "../../../Service/ClassificationAnalysis";
-import SliderInput from "./SliderInput";
-import SwitchInput from "./SwitchInput";
-import AlgorithmInput from "./AlgorithmsInput";
+import SliderInput from "../SliderInput";
+import SwitchInput from "../SwitchInput";
+import AlgorithmInput from "../AlgorithmsInput";
 
 interface Props {
-  onSelect: (algorithmCode: string, trainPercent: number, hmitSearch: boolean, handleRoot: boolean) => void;
+  onSelect: (
+    algorithmCode: string,
+    trainPercent: number,
+    hmitSearch: boolean,
+    handleRoot: boolean
+  ) => void;
   handleClose: () => void;
   isOpen: boolean;
 }
@@ -42,10 +47,20 @@ const ClassificationSettings: FC<Props> = ({
         Настройки классификации
       </DialogTitle>
       <DialogContent dividers>
-        <AlgorithmInput value={algo} onChange={setAlgo} />
+        <AlgorithmInput
+          value={algo}
+          onChange={setAlgo}
+          algorithms={algorithms}
+          label="Алгоритм классификации"
+        />
         <Typography gutterBottom>Процент обучающей выборки</Typography>
         <SliderInput value={trainPercent} onChange={setTrainPercent} />
-        <SwitchInput value={hmitSearch} onChange={setIsHmit} name="isHmit" label="Поиск ХМИТов" />
+        <SwitchInput
+          value={hmitSearch}
+          onChange={setIsHmit}
+          name="isHmit"
+          label="Поиск ХМИТов"
+        />
         <SwitchInput
           value={handleRoot}
           onChange={setHandleRoot}

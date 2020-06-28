@@ -1,7 +1,7 @@
 import { observable, action, runInAction } from "mobx";
 import { Mail } from "./queries";
 import BaseService from "./BaseService";
-import { saveAsFile } from "./contentLoad";
+import { saveAsFile, contentType } from "./contentLoad";
 
 export default class ImpExpService extends BaseService {
   reloadTable: () => Promise<void>;
@@ -68,7 +68,7 @@ export default class ImpExpService extends BaseService {
   exportDataFromDbJson = async () => {
     try {
       const data = await Mail.exportDataJson();
-      saveAsFile("exportedData.json", data.data, "application/json");
+      saveAsFile("exportedData.json", data.data, contentType.json);
       runInAction(this.notifySuccess);
     } catch (error) {
       runInAction(this.notifyError);
@@ -78,7 +78,7 @@ export default class ImpExpService extends BaseService {
   exportDataFromDbCsv = async () => {
     try {
       const data = await Mail.exportDataCsv();
-      saveAsFile("exportedData.csv", data.data, "text/csv");
+      saveAsFile("exportedData.csv", data.data, contentType.csv);
       runInAction(this.notifySuccess);
     } catch (error) {
       runInAction(this.notifyError);

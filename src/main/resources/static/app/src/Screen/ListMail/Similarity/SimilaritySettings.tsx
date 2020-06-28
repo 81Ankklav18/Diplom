@@ -5,14 +5,10 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  RadioGroup,
-  Radio,
-  FormControlLabel,
-  FormLabel,
-  FormControl,
   TextField,
 } from "@material-ui/core";
 import { algorithms } from "../../../Service/SimilarityAnalysis";
+import AlgorithmInput from "../AlgorithmsInput";
 
 interface Props {
   onSelect: (algorithmCode: string, topN: number) => void;
@@ -22,16 +18,13 @@ interface Props {
 
 const SimilaritySettings: FC<Props> = ({ handleClose, onSelect, isOpen }) => {
   const [value, setValue] = useState(algorithms[0]);
-  const handleChangeAlgorithm = useCallback((
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setValue((event.target as HTMLInputElement).value);
-  }, []);
-
   const [topN, setTopN] = useState(5);
-  const handleChangeText = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setTopN(Number((event.target as HTMLInputElement).value));
-  }, []);
+  const handleChangeText = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setTopN(Number((event.target as HTMLInputElement).value));
+    },
+    []
+  );
 
   useEffect(() => {
     if (!isOpen) {
@@ -67,24 +60,12 @@ const SimilaritySettings: FC<Props> = ({ handleClose, onSelect, isOpen }) => {
           margin="dense"
           size="small"
         />
-        <FormControl component="fieldset">
-          <FormLabel component="legend">Алгоритм обработки</FormLabel>
-          <RadioGroup
-            aria-label="algorithm"
-            name="algorithm"
-            value={value}
-            onChange={handleChangeAlgorithm}
-          >
-            {algorithms.map((option) => (
-              <FormControlLabel
-                value={option}
-                key={option}
-                control={<Radio />}
-                label={option}
-              />
-            ))}
-          </RadioGroup>
-        </FormControl>
+        <AlgorithmInput
+          label="Алгоритм обработки"
+          algorithms={algorithms}
+          onChange={setValue}
+          value={value}
+        />
       </DialogContent>
       <DialogActions>
         <Button autoFocus onClick={handleClose} color="primary">

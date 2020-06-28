@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Typography,
   Grid,
@@ -21,9 +20,11 @@ type UploadButtonProps = {
 };
 const UploadButton: FC<UploadButtonProps> = memo(({ disabled, onClick }) => (
   <Tooltip title="Загрузить в БД">
-    <IconButton aria-label="publish" disabled={disabled} onClick={onClick}>
-      <PublishIcon />
-    </IconButton>
+    <span>
+      <IconButton aria-label="publish" disabled={disabled} onClick={onClick}>
+        <PublishIcon />
+      </IconButton>
+    </span>
   </Tooltip>
 ));
 
@@ -55,62 +56,58 @@ const ImportExportData: FC = observer(() => {
     >
       <DialogTitle id="scroll-dialog-title">Импорт/Экспорт</DialogTitle>
       <DialogContent dividers>
-        <DialogContentText id="scroll-dialog-description" tabIndex={-1}>
-          <Grid container spacing={1}>
-            <Grid item xs={12}>
-              <Typography variant="h6">Импорт данных</Typography>
-              <Typography>
-                Выберите файл с данными для добавления в БД
-              </Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Button variant="contained" component="label">
-                Выберите JSON
-                <input
-                  type="file"
-                  accept="application/json"
-                  style={{ display: "none" }}
-                  onChange={onFileJsonChoose}
-                />
-              </Button>
-              <UploadButton
-                disabled={store.fileJson === null}
-                onClick={store.importDataToDbJson}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Button variant="contained" component="label">
-                Выберите CSV
-                <input
-                  type="file"
-                  accept="text/csv"
-                  style={{ display: "none" }}
-                  onChange={onFileCsvChoose}
-                />
-              </Button>
-              <UploadButton
-                disabled={store.fileCsv === null}
-                onClick={store.importDataToDbCsv}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="h6">Экспорт данных</Typography>
-              <Typography>
-                Выгрузка данных из БД в формате JSON или CSV
-              </Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Button variant="contained" onClick={store.exportDataFromDbJson}>
-                Выгрузить JSON
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button variant="contained" onClick={store.exportDataFromDbCsv}>
-                Выгрузить CSV
-              </Button>
-            </Grid>
+        <Grid container spacing={1}>
+          <Grid item xs={12}>
+            <Typography variant="h6">Импорт данных</Typography>
+            <Typography>Выберите файл с данными для добавления в БД</Typography>
           </Grid>
-        </DialogContentText>
+          <Grid item xs={6}>
+            <Button variant="contained" component="label">
+              Выберите JSON
+              <input
+                type="file"
+                accept="application/json"
+                style={{ display: "none" }}
+                onChange={onFileJsonChoose}
+              />
+            </Button>
+            <UploadButton
+              disabled={store.fileJson === null}
+              onClick={store.importDataToDbJson}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <Button variant="contained" component="label">
+              Выберите CSV
+              <input
+                type="file"
+                accept="text/csv"
+                style={{ display: "none" }}
+                onChange={onFileCsvChoose}
+              />
+            </Button>
+            <UploadButton
+              disabled={store.fileCsv === null}
+              onClick={store.importDataToDbCsv}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="h6">Экспорт данных</Typography>
+            <Typography>
+              Выгрузка данных из БД в формате JSON или CSV
+            </Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Button variant="contained" onClick={store.exportDataFromDbJson}>
+              Выгрузить JSON
+            </Button>
+          </Grid>
+          <Grid item xs={6}>
+            <Button variant="contained" onClick={store.exportDataFromDbCsv}>
+              Выгрузить CSV
+            </Button>
+          </Grid>
+        </Grid>
       </DialogContent>
       <DialogActions>
         <Button onClick={store.closeDialog} color="primary">

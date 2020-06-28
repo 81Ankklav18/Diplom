@@ -6,14 +6,15 @@ import {
   FormControl,
   FormLabel,
 } from "@material-ui/core";
-import { algorithms } from "../../../Service/ClassificationAnalysis";
 
 interface Props {
   onChange: (value: string) => void;
   value: string;
+  algorithms: string[];
+  label: string;
 }
 
-const AlgorithmInput: FC<Props> = memo(({ onChange, value }) => {
+const AlgorithmInput: FC<Props> = memo(({ onChange, value, algorithms, label }) => {
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) =>
       onChange(event.target.value),
@@ -29,11 +30,11 @@ const AlgorithmInput: FC<Props> = memo(({ onChange, value }) => {
           label={option}
         />
       )),
-    []
+    [algorithms]
   );
   return (
     <FormControl component="fieldset">
-      <FormLabel component="legend">Алгоритм классификации</FormLabel>
+      <FormLabel component="legend">{label}</FormLabel>
       <RadioGroup
         aria-label="algorithm"
         name="algorithm"

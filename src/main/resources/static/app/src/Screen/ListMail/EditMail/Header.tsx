@@ -39,9 +39,11 @@ const Header: FC<Props> = ({ isNew, cancel, submitting }) => {
         {isNew ? "Создание" : "Редактирование"}
       </Typography>
       <Tooltip title="Сохранить">
-        <IconButton aria-label="save" type="submit" disabled={submitting}>
-          <DoneIcon />
-        </IconButton>
+        <span>
+          <IconButton aria-label="save" type="submit" disabled={submitting}>
+            <DoneIcon />
+          </IconButton>
+        </span>
       </Tooltip>
       <Tooltip title="Отмена">
         <IconButton aria-label="cancel" onClick={cancel}>
