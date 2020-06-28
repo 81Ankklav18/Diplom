@@ -40,7 +40,7 @@ export default class ImpExpService extends BaseService {
   importDataToDbJson = async () => {
     if (!this.fileJson) return;
     const formData = new FormData();
-    formData.append("import.json", this.fileJson, "import.json");
+    formData.append("file", this.fileJson, "import.json");
     try {
       await Mail.importDataJson(formData);
       runInAction(this.notifySuccess);
@@ -54,7 +54,7 @@ export default class ImpExpService extends BaseService {
   importDataToDbCsv = async () => {
     if (!this.fileCsv) return;
     const formData = new FormData();
-    formData.append("import.csv", this.fileCsv, "import.csv");
+    formData.append("file", this.fileCsv, "import.csv");
     try {
       await Mail.importDataCsv(formData);
       runInAction(this.notifySuccess);

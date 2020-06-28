@@ -2,25 +2,31 @@ package com.anklav.diplom.controller;
 
 import com.anklav.diplom.dto.*;
 import com.anklav.diplom.entity.Mail;
-import com.anklav.diplom.mapper.MailImportMapper;
+import com.anklav.diplom.mapper.MailShortFormatMapper;
 import com.anklav.diplom.mapper.TableViewMapper;
 import com.anklav.diplom.repository.MailRepository;
 import com.anklav.diplom.service.MailService;
-import com.opencsv.bean.CsvToBeanBuilder;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.CSVWriter;
 import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("mail")
@@ -55,9 +61,17 @@ public class MailController {
     }
 
     @PostMapping("import/json")
-    public void importDataJson(@RequestBody List<Mail> mails) {
-        for (Mail mail : mails) {
-            mailService.createMessage(mailRepository.save(mail));
+    public ResponseEntity<String> importDataJson(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty())
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Выберите файл для импорта.");
+        try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            ObjectMapper mapper = new ObjectMapper()
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            List<Mail> mails = Arrays.asList(mapper.readValue(reader, Mail[].class));
+            mails.forEach(mail -> mailService.createMessage(mailRepository.save(mail)));
+            return ResponseEntity.status(HttpStatus.OK).body("Импорт завершен.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка обработки JSON файла.");
         }
     }
 
@@ -72,19 +86,52 @@ public class MailController {
                     .build();
 
             List<MailCsvDTO> mails = csvToBean.parse();
-
-            for (MailCsvDTO mail : mails) {
-                mailService.createMessage(mailRepository.save(MailImportMapper.CsvToMail(mail)));
-            }
-            return ResponseEntity.status(HttpStatus.OK).body("Импорт завершен.");
+            mails.stream()
+                    .map(MailShortFormatMapper::CsvToMail)
+                    .forEach(mail -> mailService.createMessage(mailRepository.save(mail)));
+            return ResponseEntity.ok("Импорт завершен.");
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка обработки CSV файла.");
         }
     }
 
-    @GetMapping("export")
-    public List<Mail> exportDataJson() {
-        return mailRepository.findAll();
+    @GetMapping(value = "export/json", produces = "application/json")
+    public ResponseEntity<StreamingResponseBody> exportDataJson(final HttpServletResponse response) {
+        response.setContentType("application/json");
+        response.setHeader("Content-Disposition", "attachment;filename=exportedData.json");
+        List<Mail> mail = mailRepository.findAll();
+        StreamingResponseBody stream = out -> {
+            try (Writer writer = new OutputStreamWriter(response.getOutputStream())) {
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.writeValue(writer, mail);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+        return ResponseEntity.ok(stream);
+    }
+
+    @GetMapping(value = "export/csv", produces = "text/csv")
+    public ResponseEntity<StreamingResponseBody> exportDataCsv(final HttpServletResponse response) {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment;filename=exportedData.csv");
+        List<MailCsvDTO> mail = mailRepository.findAll()
+                .stream()
+                .map(MailShortFormatMapper::MailToCsv)
+                .collect(Collectors.toList());
+        StreamingResponseBody stream = out -> {
+            try (Writer writer = new OutputStreamWriter(response.getOutputStream())) {
+                StatefulBeanToCsv<MailCsvDTO> csvWriter = new StatefulBeanToCsvBuilder<MailCsvDTO>(writer)
+                        .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+                        .withLineEnd(CSVWriter.DEFAULT_LINE_END)
+                        .withOrderedResults(false)
+                        .build();
+                csvWriter.write(mail);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+        return ResponseEntity.ok(stream);
     }
 
     @PutMapping("{id}")
