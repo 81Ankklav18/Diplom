@@ -9,4 +9,6 @@ public class ClassificationDTO {
     List<String> id;
     String method;
     int trainPercent;
+    boolean hmitSearch;
+    boolean handleRoot;
 }

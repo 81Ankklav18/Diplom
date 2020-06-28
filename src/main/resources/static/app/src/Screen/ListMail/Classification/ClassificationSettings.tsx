@@ -1,87 +1,35 @@
-import React, { FC, useState, useCallback, useMemo } from "react";
+import React, { FC, useState, useCallback } from "react";
 import {
   DialogActions,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
-  RadioGroup,
-  Radio,
-  FormControlLabel,
-  FormControl,
-  FormLabel,
-  Slider,
   Typography,
-  Grid,
-  Input,
-  makeStyles,
 } from "@material-ui/core";
 import { algorithms } from "../../../Service/ClassificationAnalysis";
+import SliderInput from "./SliderInput";
+import SwitchInput from "./SwitchInput";
+import AlgorithmInput from "./AlgorithmsInput";
 
 interface Props {
-  onSelect: (algorithmCode: string, trainPercent: number) => void;
+  onSelect: (algorithmCode: string, trainPercent: number, hmitSearch: boolean, handleRoot: boolean) => void;
   handleClose: () => void;
   isOpen: boolean;
 }
-
-const useStyles = makeStyles({
-  input: {
-    width: 42,
-  },
-});
-
-const trainInputParams = {
-  step: 1,
-  min: 0,
-  max: 100,
-  type: "number",
-};
 
 const ClassificationSettings: FC<Props> = ({
   handleClose,
   onSelect,
   isOpen,
 }) => {
-  const classes = useStyles();
-  const [value, setValue] = useState(algorithms[0]);
+  const [algo, setAlgo] = useState(algorithms[0]);
   const [trainPercent, setTrainPercent] = useState(50.0);
+  const [hmitSearch, setIsHmit] = useState(false);
+  const [handleRoot, setHandleRoot] = useState(false);
   const handleOk = useCallback(() => {
-    onSelect(value, trainPercent);
-  }, [onSelect, value, trainPercent]);
-  const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) =>
-      setValue(event.target.value),
-    []
-  );
-  const handleTrainChange = useCallback(
-    (_, value: number | number[]) => setTrainPercent(+value),
-    []
-  );
-  const handleTrainInputChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) =>
-      setTrainPercent(+event.target.value),
-    []
-  );
-
-  const handleTrainBlur = useCallback(() => {
-    if (trainPercent < 0) {
-      setTrainPercent(0);
-    } else if (trainPercent > 100) {
-      setTrainPercent(100);
-    }
-  }, [trainPercent]);
-  const radioItems = useMemo(
-    () =>
-      algorithms.map((option) => (
-        <FormControlLabel
-          value={option}
-          key={option}
-          control={<Radio />}
-          label={option}
-        />
-      )),
-    []
-  );
+    onSelect(algo, trainPercent, hmitSearch, handleRoot);
+  }, [onSelect, algo, trainPercent, hmitSearch, handleRoot]);
   return (
     <Dialog
       disableBackdropClick
@@ -94,40 +42,16 @@ const ClassificationSettings: FC<Props> = ({
         Настройки классификации
       </DialogTitle>
       <DialogContent dividers>
-        <FormControl component="fieldset">
-          <FormLabel component="legend">Алгоритм классификации</FormLabel>
-          <RadioGroup
-            aria-label="algorithm"
-            name="algorithm"
-            value={value}
-            onChange={handleChange}
-          >
-            {radioItems}
-          </RadioGroup>
-        </FormControl>
+        <AlgorithmInput value={algo} onChange={setAlgo} />
         <Typography gutterBottom>Процент обучающей выборки</Typography>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs>
-            <Slider
-              value={trainPercent}
-              onChange={handleTrainChange}
-              step={trainInputParams.step}
-              min={trainInputParams.min}
-              max={trainInputParams.max}
-              valueLabelDisplay="auto"
-            />
-          </Grid>
-          <Grid item>
-            <Input
-              value={trainPercent}
-              margin="dense"
-              onChange={handleTrainInputChange}
-              onBlur={handleTrainBlur}
-              className={classes.input}
-              inputProps={trainInputParams}
-            />
-          </Grid>
-        </Grid>
+        <SliderInput value={trainPercent} onChange={setTrainPercent} />
+        <SwitchInput value={hmitSearch} onChange={setIsHmit} name="isHmit" label="Поиск ХМИТов" />
+        <SwitchInput
+          value={handleRoot}
+          onChange={setHandleRoot}
+          name="handleRoot"
+          label="Учитывать корневой элемент"
+        />
       </DialogContent>
       <DialogActions>
         <Button autoFocus onClick={handleClose} color="primary">

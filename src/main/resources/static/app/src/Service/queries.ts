@@ -25,15 +25,12 @@ const fetcher = <T>(
   }
   return axios.request<T>(config);
 };
-const fetchBlob = (
-  url: string,
-  method: Method,
-  data?: object | FormData
-): R => axios.request({
+const fetchBlob = (url: string, method: Method, data?: object | FormData): R =>
+  axios.request({
     url,
     method,
     data,
-    responseType: 'blob'
+    responseType: "blob",
   });
 
 export const Mail = {
@@ -53,11 +50,19 @@ export const Mail = {
     date: new Date(model.date),
   }),
 
-  classification: (id: Id[], method: string, trainPercent: number) =>
+  classification: (
+    id: Id[],
+    method: string,
+    trainPercent: number,
+    hmitSearch: boolean,
+    handleRoot: boolean
+  ) =>
     fetcher<ClassificationResult>("/mail/classification", "POST", {
       id,
       method,
       trainPercent,
+      hmitSearch,
+      handleRoot
     }),
   similarity: (id: Id, method: string, topN: number) =>
     fetcher<SimilarityResult>("/mail/similarity", "POST", { id, method, topN }),

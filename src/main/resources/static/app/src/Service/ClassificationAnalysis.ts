@@ -11,14 +11,18 @@ export default class ClassificationAnalysis extends AnalysisBase<
   @action
   selectClassificationAlgorithm = async (
     algorithmCode: string,
-    trainPercent: number
+    trainPercent: number,
+    hmitSearch: boolean,
+    handleRoot: boolean,
   ) => {
     this.stage = "FETCHING";
     try {
       const data = await Mail.classification(
         this.getSelectedIds(),
         algorithmCode,
-        trainPercent
+        trainPercent,
+        hmitSearch,
+        handleRoot
       );
       runInAction(() => {
         this.result = data.data;
