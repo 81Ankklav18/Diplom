@@ -1,5 +1,4 @@
 import { observable, action, runInAction } from "mobx";
-import { MailEditItem } from "./types";
 import { Mail } from "./queries";
 import BaseService from "./BaseService";
 import { saveAsFile } from "./contentLoad";
@@ -17,58 +16,69 @@ export default class ImpExpService extends BaseService {
   @observable
   isOpen: boolean = false;
   @observable
-  fileContent: string | null = null;
+  fileJson: File | null = null;
+  @observable
+  fileCsv: File | null = null;
   @action
   openDialog = () => {
     this.isOpen = true;
-    this.fileContent = null;
+    this.fileJson = null;
+    this.fileCsv = null;
   };
   @action
   closeDialog = () => {
     this.isOpen = false;
-    this.fileContent = null;
+    this.fileJson = null;
+    this.fileCsv = null;
   };
   @action
-  loadFileData = async (file: File) => {
-    const reader = new FileReader();
-    reader.readAsText(file, "UTF-8");
-    reader.onload = (evt) => {
-      runInAction(() => {
-        if (evt.target?.result) {
-          this.fileContent = evt.target.result as string;
-        }
-      });
-    };
-    reader.onerror = () => runInAction(this.notifyError);
-  };
+  loadFileDataJson = async (file: File) => (this.fileJson = file);
+  @action
+  loadFileCsv = (file: File) => (this.fileCsv = file);
 
   @action
-  importDataToDb = async () => {
-    if (!this.fileContent) return;
-    let data: MailEditItem[] | null = null;
+  importDataToDbJson = async () => {
+    if (!this.fileJson) return;
+    const formData = new FormData();
+    formData.append("import.json", this.fileJson, "import.json");
     try {
-      data = JSON.parse(this.fileContent);
-    } catch (error) {
-      this.notifyError();
-    }
-    if (data === null) return;
-    try {
-      await Mail.importDataJson(data);
+      await Mail.importDataJson(formData);
       runInAction(this.notifySuccess);
     } catch (error) {
       runInAction(this.notifyError);
     }
     await this.reloadTable();
   };
+
   @action
-  exportDataFromDb = async () => {
+  importDataToDbCsv = async () => {
+    if (!this.fileCsv) return;
+    const formData = new FormData();
+    formData.append("import.csv", this.fileCsv, "import.csv");
     try {
-      const data = await Mail.exportData();
-      saveAsFile(
-        "exportedData.json",
-        JSON.stringify(data.data, null, "\t"),
-        "application/json"
-      );
+      await Mail.importDataCsv(formData);
+      runInAction(this.notifySuccess);
+    } catch (error) {
+      runInAction(this.notifyError);
+    }
+    await this.reloadTable();
+  };
+
+  @action
+  exportDataFromDbJson = async () => {
+    try {
+      const data = await Mail.exportDataJson();
+      saveAsFile("exportedData.json", data.data, "application/json");
+      runInAction(this.notifySuccess);
+    } catch (error) {
+      runInAction(this.notifyError);
+    }
+  };
+  @action
+  exportDataFromDbCsv = async () => {
+    try {
+      const data = await Mail.exportDataCsv();
+      saveAsFile("exportedData.csv", data.data, "text/csv");
       runInAction(this.notifySuccess);
     } catch (error) {
       runInAction(this.notifyError);

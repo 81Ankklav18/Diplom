@@ -1,4 +1,4 @@
-import axios, { AxiosPromise as R, Method } from "axios";
+import axios, { AxiosPromise as R, Method, AxiosRequestConfig } from "axios";
 import {
   MailListItem,
   Id,
@@ -12,11 +12,28 @@ const fetcher = <T>(
   url: string,
   method: Method,
   data?: object | FormData
-): R<T> =>
-  axios.request<T>({
+): R<T> => {
+  const config: AxiosRequestConfig = {
     url,
     method,
     data,
+  };
+  if (data instanceof FormData) {
+    config.headers = {
+      "Content-Type": "multipart/form-data",
+    };
+  }
+  return axios.request<T>(config);
+};
+const fetchBlob = (
+  url: string,
+  method: Method,
+  data?: object | FormData
+): R => axios.request({
+    url,
+    method,
+    data,
+    responseType: 'blob'
   });
 
 export const Mail = {
@@ -44,7 +61,11 @@ export const Mail = {
     }),
   similarity: (id: Id, method: string, topN: number) =>
     fetcher<SimilarityResult>("/mail/similarity", "POST", { id, method, topN }),
-  importDataJson: (data: MailEditItem[]) =>
+  importDataJson: (data: FormData) =>
     fetcher<void>("/mail/import/json", "POST", data),
-  exportData: () => fetcher<MailEditItem[]>("/mail/export", "GET"),
+  importDataCsv: (data: FormData) =>
+    fetcher<void>("/mail/import/csv", "POST", data),
+
+  exportDataJson: () => fetchBlob("/mail/export/json", "GET"),
+  exportDataCsv: () => fetchBlob("/mail/export/csv", "GET"),
 };
