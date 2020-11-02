@@ -47,8 +47,7 @@ public class TreeUtils {
         List<Tree> t1List = t1.getChildrenAsList();
         List<Tree> t2List = t2.getChildrenAsList();
 
-        for (Tree firstNode : t1List
-        ) {
+        for (Tree firstNode : t1List) {
             Tree secondNode = t2List.stream()
                     .filter(x -> x.label().toString().equals(firstNode.label().toString()))
                     .findFirst()

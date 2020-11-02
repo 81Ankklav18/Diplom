@@ -5,6 +5,7 @@ import SimilarityStore from "./SimilarityAnalysis";
 import ClassificationStore from "./ClassificationAnalysis";
 import ImpExpService from "./ImpExpService";
 import MailEditService from "./MailEditService";
+import HelpService from "./HelpService";
 
 export default class MailStore {
   @observable selectedIds: Id[] = [];
@@ -88,7 +89,7 @@ export default class MailStore {
     this.notifyError,
     this.reloadTable
   );
-
+  helpStore = new HelpService();
   @action
   removeSelected = async () => {
     try {

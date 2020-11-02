@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CustomerDateAndTimeDeserialize extends JsonDeserializer<Date> {
-    private SimpleDateFormat dateFormat = new SimpleDateFormat(
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss");
 
     @Override

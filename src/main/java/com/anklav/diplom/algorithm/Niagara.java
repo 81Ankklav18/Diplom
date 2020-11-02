@@ -30,9 +30,9 @@ public class Niagara {
         Map<String, Tree> temp = new HashMap<>();
         exts.forEach((e) -> {
             e.forEach((ee) -> {
-                for (int i = 0; i < n1.size(); i++) {
-                    if (ee.equals(n1.get(i).getId().toString().substring(1, n1.get(i).getId().toString().length() - 1))) {
-                        temp.put(ee, n1.get(i).getTree());
+                for (NiagaraObject niagaraObject : n1) {
+                    if (ee.equals(niagaraObject.getId().toString().substring(1, niagaraObject.getId().toString().length() - 1))) {
+                        temp.put(ee, niagaraObject.getTree());
                     }
                 }
             });
@@ -139,11 +139,11 @@ public class Niagara {
                 temp.add(e);
                 debut.setS(temp);
                 debut.setExt(temp);
-                for(int j = 0; j < n1.size(); j++) {
-                    if (n1.get(j).getId().toString().substring(1, n1.get(j).getId().toString().length() - 1).equals(e)) {
+                for (NiagaraObject niagaraObject : n1) {
+                    if (niagaraObject.getId().toString().substring(1, niagaraObject.getId().toString().length() - 1).equals(e)) {
                         for (int k = 0; k < fDebuts.size(); k++) {
                             if (fDebuts.get(k).getS().equals(debuts.get(k).getS())) {
-                                debut.setTS(treeUtils.treesIntersection(n1.get(j).getTree(), fDebuts.get(k).getTS()));
+                                debut.setTS(treeUtils.treesIntersection(niagaraObject.getTree(), fDebuts.get(k).getTS()));
                             }
                         }
                     }

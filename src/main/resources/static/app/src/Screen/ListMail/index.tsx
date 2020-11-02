@@ -14,6 +14,7 @@ import Notifications from "./Notifications";
 import ImportExportData from "./ImportExportData";
 import Similarity from "./Similarity";
 import Classification from "./Classification";
+import HelpDialog from "../Help";
 
 const drawerWidth = 450;
 
@@ -69,6 +70,7 @@ const MailRoot: FC = observer(() => {
       <Similarity />
       <Classification />
       <ImportExportData />
+      <HelpDialog />
     </>
   );
 });

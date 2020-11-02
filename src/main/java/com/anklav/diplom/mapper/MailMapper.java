@@ -9,14 +9,12 @@ import com.google.api.services.gmail.model.MessagePartHeader;
 import org.apache.http.client.utils.DateUtils;
 import org.jsoup.Jsoup;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class MailMapper {
     public static List<MailDTO> getViewDTO(List<Message> messageList) {
-        List<MailDTO> mailDTOList = new ArrayList<>();
-        messageList
+        return messageList
                 .stream()
                 .map(x -> {
                     MailDTO mailDTO = new MailDTO();
@@ -53,12 +51,9 @@ public class MailMapper {
                             .map(MessagePartHeader::getValue)
                             .findFirst()
                             .get());
-                    mailDTOList.add(mailDTO);
-                    return mailDTOList;
+                    return mailDTO;
                 })
         .collect(Collectors.toList());
-
-        return mailDTOList;
     }
 
     public static List<Mail> getMailsEntity(List<MailDTO> mailDTOS) {

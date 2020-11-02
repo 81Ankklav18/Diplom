@@ -14,6 +14,7 @@ import ReplayIcon from "@material-ui/icons/Replay";
 import AddCircleOutline from "@material-ui/icons/AddCircleOutline";
 import ArrowUpward from "@material-ui/icons/ArrowUpward";
 import ImportExport from "@material-ui/icons/ImportExport";
+import HelpIcon from "@material-ui/icons/Help";
 import { useStore } from "../Service/store";
 import RunButton from "./RunButton";
 
@@ -44,6 +45,15 @@ const TopBar: FC = observer(() => {
           <Typography variant="h6" color="inherit" className={classes.header}>
             Mail classifier
           </Typography>
+          <Tooltip title="Помощь">
+            <IconButton
+              aria-label="help"
+              color="inherit"
+              onClick={store.helpStore.open}
+            >
+              <HelpIcon />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Импорт/Экспорт">
             <IconButton
               aria-label="import and export"

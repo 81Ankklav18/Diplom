@@ -11,7 +11,6 @@ import com.anklav.diplom.mapper.EditViewMapper;
 import com.anklav.diplom.mapper.MailMapper;
 import com.anklav.diplom.repository.MailRepository;
 import com.anklav.diplom.utils.TreeUtils;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -61,8 +60,6 @@ public class MailService {
 
     private static final List<Message> resultListForDB = new ArrayList<>();
 
-    private static JsonMapper jsonMapper = new JsonMapper();
-
     @Autowired
     MailRepository mailRepository;
 
@@ -98,8 +95,6 @@ public class MailService {
                 .filter(y -> y.getLabelIds().contains("Label_2665037630844836558")
                         || y.getLabelIds().contains("Label_3743344143877711668"))
                 .collect(Collectors.toList()));
-
-//        jsonMapper.writeValueAsString(mailDTOList);
 
         mailRepository.saveAll(MailMapper.getMailsEntity(mailDTOList));
     }
